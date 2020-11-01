@@ -1,11 +1,11 @@
 import requests
-from config import access_token as at, version
+from config import Pasha_Radkevich as at, version
 import logging
 import random
 import hashlib
 import time
 
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     filename='app.log',
                     filemode='w',
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -38,6 +38,7 @@ def _get_user_agent():
         webkit = str(random.randint(500, 599))
         version = str(random.randint(0, 24)) + '.0' + \
             str(random.randint(0, 1500)) + '.' + str(random.randint(0, 999))
+        logging.info(f"function: _get_user_agent - result: 'Mozilla/5.0 (' + {os} + ') AppleWebKit/' + {webkit} + '.0 (KHTML, live Gecko) Chrome/' + {version} + ' Safari/' + {webkit}")
         return 'Mozilla/5.0 (' + os + ') AppleWebKit/' + webkit + \
             '.0 (KHTML, live Gecko) Chrome/' + version + ' Safari/' + webkit
     elif browser == 'firefox':
@@ -68,8 +69,8 @@ def _get_user_agent():
                                  '13.0',
                                  '14.0',
                                  '15.0'])
-        return 'Mozilla/5.0 (' + os + '; rv:' + version + \
-            ') Gecko/' + gecko + ' Firefox/' + version
+        logging.info(f"function: _get_user_agent - result: 'Mozilla/5.0 (' + {os} + '; rv:' + {version} + ') Gecko/' + {gecko} + ' Firefox/' + {version}")
+        return 'Mozilla/5.0 (' + os + '; rv:' + version + ') Gecko/' + gecko + ' Firefox/' + version
     elif browser == 'ie':
         version = str(random.randint(1, 10)) + '.0'
         engine = str(random.randint(1, 5)) + '.0'
@@ -79,6 +80,7 @@ def _get_user_agent():
                 ['.NET CLR', 'SV1', 'Tablet PC', 'Win64; IA64', 'Win64; x64', 'WOW64']) + '; '
         elif option == False:
             token = ''
+        logging.info(f"function: _get_user_agent - result: 'Mozilla/5.0 (compatible; MSIE ' + {version} + '; ' + {os} + '; ' + {token} + 'Trident/' + {engine} + ')'")
         return 'Mozilla/5.0 (compatible; MSIE ' + version + \
             '; ' + os + '; ' + token + 'Trident/' + engine + ')'
 
@@ -92,6 +94,7 @@ def create_new_session():
     }
     google_id = hashlib.md5(
         str(random.randint(0, 16**16)).encode()).hexdigest()[: 16]
+    logging.info(f"function: create_new_session - google_id: {google_id}")
     cookie = {
         "domain": ".scholar.google.com",
         "expires": time.time() + 60 * 60,
@@ -116,7 +119,7 @@ class VK():
             friends["result"] = []
             friends["error"] = {}
             while flag:
-                url = 'https://api.vk.com/method/friends.get?user_id={user_id}&fields=city,country&count=100&offset={offset}&access_token={access_token}&v={api_version}'
+                url = 'https://api.vk.com/method/friends.get?user_id={user_id}&fields=city,country&count=10000&offset={offset}&access_token={access_token}&v={api_version}'
                 url_formatted = url.format(user_id=user_id, access_token=self.access_token, api_version=self.v, offset=i)
                 res_friends = create_new_session().get(url_formatted)
                 keys = list(res_friends.json().keys())
@@ -125,11 +128,13 @@ class VK():
                     friends["error"][user_id] = err
                     logging.info(f"function: getFriends - handled error: {err}")
                     break
+                else:
+                    logging.info(f'function: getFriends - result request: {res_friends.json()["response"]["items"]}')
                 if len(res_friends.json()["response"]['items']) == 0:
                     flag = False
                 for friend in res_friends.json()["response"]['items']:
                     friends["result"].append(friend["id"])
-                i += 100
+                i += 10000
             friends["status"] = "success"
         except:
             friends["status"] = "fail"
@@ -137,8 +142,10 @@ class VK():
         return friends
 
     def getFriendsOfFriends(self, user_id):
-        friends = self.getFriends(user_id)
         fr_deep = {}
+        friends = self.getFriends(user_id)
+        if len(friends['result']) == 0:
+            return friends
         try:
             fr_deep["result"] = {}
             fr_deep["error"] = []
@@ -170,6 +177,8 @@ class VK():
                     groups["error"][user_id] = err
                     logging.info(f"function: getGroups - handled error: {err}")
                     break
+                else:
+                    logging.info(f'function: getGroups - result request: {res_groups.json()["response"]["items"]}')
                 if len(res_groups.json()["response"]['items']) == 0:
                     flag = False
                 for group in res_groups.json()["response"]['items']:
@@ -178,9 +187,10 @@ class VK():
             groups["status"] = "success"
         except:
             groups["status"] = "fail"
+            logging.exception("Exception occurred")
         return groups
 
 if __name__ == '__main__':
     vk = VK(at, version)
     users = [244864074, 89767667, 153988262, 135707636, 257875098, 124315477, 210121381, 136389672, 135707636]
-    print(vk.getFriends(89767667))
+    print(vk.getFriendsOfFriends(89767667))
