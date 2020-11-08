@@ -16,6 +16,8 @@ def get_request(URL: str, data: dict):
     Arguments:
         URL:str - URL request
         data:dict - parameters for executed request
+    Return:
+        result: json
     """
     root_logger.debug(f"Execute request '{URL}' with params {data}")
     full_url = f"{URL}?"
