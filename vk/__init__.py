@@ -1,3 +1,3 @@
 from .VK import *
 
-__version__ = "01.00.00"
+__version__ = "02.00.00"

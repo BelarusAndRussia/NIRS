@@ -10,8 +10,15 @@ handler = logging.handlers.RotatingFileHandler("app.log", mode='w', maxBytes=5*1
 handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 root_logger.addHandler(handler)
 
+
 def _get_user_agent():
-    """Generate new UA for header"""
+    """
+    Create new user agent
+    Arguments:
+        None
+    Return:
+        result: user_agent: str
+    """
     platform = random.choice(['Macintosh', 'Windows', 'X11'])
     if platform == 'Macintosh':
         os = random.choice(['68K', 'PPC'])
@@ -37,8 +44,8 @@ def _get_user_agent():
         version = str(random.randint(0, 24)) + '.0' + \
             str(random.randint(0, 1500)) + '.' + str(random.randint(0, 999))
         root_logger.info(f"function: _get_user_agent - result: 'Mozilla/5.0 (' + {os} + ') "
-                     f"AppleWebKit/' + {webkit} + \ '.0 (KHTML, live Gecko) Chrome/' + {version} + "
-                     f"' Safari/' + {webkit}")
+                         f"AppleWebKit/' + {webkit} + '.0 (KHTML, live Gecko) Chrome/' + {version} + "
+                         f"' Safari/' + {webkit}")
         return 'Mozilla/5.0 (' + os + ') AppleWebKit/' + webkit + \
                '.0 (KHTML, live Gecko) Chrome/' + version + ' Safari/' + webkit
     elif browser == 'firefox':
@@ -70,23 +77,31 @@ def _get_user_agent():
                                  '14.0',
                                  '15.0'])
         root_logger.info(f"function: _get_user_agent - result: 'Mozilla/5.0 "
-                     f"(' + {os} + '; rv:' + {version} + \ ') Gecko/' + {gecko} + ' Firefox/' + {version}")
+                         f"(' + {os} + '; rv:' + {version} + ') Gecko/' + {gecko} + ' Firefox/' + {version}")
         return 'Mozilla/5.0 (' + os + '; rv:' + version + \
                ') Gecko/' + gecko + ' Firefox/' + version
     elif browser == 'ie':
         version = str(random.randint(1, 10)) + '.0'
         engine = str(random.randint(1, 5)) + '.0'
         option = random.choice([True, False])
-        if option == True:
+        if option:
             token = random.choice(['.NET CLR', 'SV1', 'Tablet PC', 'Win64; IA64', 'Win64; x64', 'WOW64']) + '; '
-        elif option == False:
+        elif not option:
             token = ''
         root_logger.info(f"function: _get_user_agent - result: 'Mozilla/5.0 (compatible; MSIE ' + {version} + "
-                     f"\ '; ' + {os} + '; ' + {token} + 'Trident/' + {engine} + ')'")
+                         f" '; ' + {os} + '; ' + {token} + 'Trident/' + {engine} + ')'")
         return 'Mozilla/5.0 (compatible; MSIE ' + version + \
                '; ' + os + '; ' + token + 'Trident/' + engine + ')'
 
+
 def create_new_session():
+    """
+    Create new session
+    Arguments:
+         None
+    Return:
+        result: requests.session()
+    """
     session = requests.session()
     session.headers = {
         'User-Agent': _get_user_agent(),
