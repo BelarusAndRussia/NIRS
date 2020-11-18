@@ -1,0 +1,6 @@
+{
+    "log_level": "DEBUG",
+    "mode": "w",
+    "encoding": "utf-8",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+}
