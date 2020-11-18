@@ -1,5 +1,7 @@
 import random
 #
+import requests
+
 from main import VERSION, TOKENS, root_logger
 from .utils import get_request
 
@@ -14,7 +16,14 @@ def vkapi_request(method: str, args: dict):
         result: dict – VkAPI response json
     """
     root_logger.debug(f"Execute VKAPI method '{method}' with params {args}")
-    data = get_request(f"https://api.vk.com/method/{method}", data=args)
+    try:
+        data = get_request(f"https://api.vk.com/method/{method}", data=args)
+    except requests.exceptions.Timeout:
+        return {"req_err": "TIMEOUT"}
+    except requests.exceptions.ConnectionError:
+        return {"req_err": "ConnectionError"}
+    except requests.exceptions.HTTPError:
+        return {"req_err": "HTTPError"}
     return data
 
 
@@ -38,7 +47,16 @@ def getFriends(user_id: int):
                                                         "offset": i,
                                                         "access_token": random.choice(TOKENS),
                                                         "v": VERSION})
-            keys = list(res_friends.json().keys())
+            if type(res_friends) == requests.models.Response:
+                keys = list(res_friends.json().keys())
+            elif type(res_friends) == dict:
+                keys = list(res_friends.keys())
+            if "req_err" in keys:
+                err = res_friends["req_err"]
+                friends["error"][user_id] = err
+                friends["status"] = "fail"
+                root_logger.info(f"function: getFriends - handled error: {err}")
+                return friends
             if "error" in keys:
                 err = str(res_friends.json()["error"]["error_code"]) + ":" + \
                       res_friends.json()["error"]["error_msg"]
@@ -107,7 +125,16 @@ def getGroups(user_id: int):
                                                       "offset": i,
                                                       "access_token": random.choice(TOKENS),
                                                       "v": VERSION})
-            keys = list(res_groups.json().keys())
+            if type(res_groups) == requests.models.Response:
+                keys = list(res_groups.json().keys())
+            elif type(res_groups) == dict:
+                keys = list(res_groups.keys())
+            if "req_err" in keys:
+                err = res_groups["req_err"]
+                groups["error"][user_id] = err
+                groups["status"] = "fail"
+                root_logger.info(f"function: getGroups - handled error: {err}")
+                return groups
             if "error" in keys:
                 err = str(res_groups.json()["error"]["error_code"]) + ":" + \
                       res_groups.json()["error"]["error_msg"]
