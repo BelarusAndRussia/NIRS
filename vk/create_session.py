@@ -5,7 +5,6 @@ import time
 from main import root_logger
 
 
-
 def _get_user_agent():
     """
     Create new user agent
