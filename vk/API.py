@@ -2,6 +2,7 @@ import random
 #
 import logging
 import json
+import re
 #
 from irequests import request
 from .exceptions import *
@@ -151,7 +152,7 @@ class VK:
             user_id: int – id of user
             fields: list - interested fields
         Return:
-            result: dict – {result: [{"field": info}], error: {id: text_error, ...}, status: success or fail}
+            result: dict – {result: [{"field": info, ...}], error: {id: text_error, ...}, status: success or fail}
         """
         fields_ = ""
         for _ in fields:
@@ -182,3 +183,42 @@ class VK:
             return self.result("fail", None, [{user_id: res_info}])
         log.debug(f'user_id: {user_id}; fields: {fields} -> OK')
         return self.result("success", res_info["response"], None)
+
+
+    def getInstOfFriends(self, user_id: int):
+        """
+        Collect instagram logins of user
+        Arguments:
+            user_id: int – id of user
+        Return:
+            result: dict – {result: [{[user_id]: "instagram login", ...}], error: {id: text_error, ...}, status: success or fail}
+        """
+        users = self.getFriends(user_id)
+        if users['result'] == None:
+            return users
+        users = users['result']
+        inst_logs = {}
+        for user in users:
+            link = self.getUsers(user, ["connections", "status", "site"])
+            if "instagram" in link['result'][0]:
+                inst_logs[user] = link['result'][0]["instagram"]
+                continue
+            if "status" in link['result'][0]:
+                pattern = re.compile('inst')
+                if link['result'][0]['status'] != '':
+                    if pattern.match(link['result'][0]['status']) != None:
+                        buff = link['result'][0]['status'].split(" ")
+                        if len(buff) >= 2:
+                            if len(buff[1]) >= 3:
+                                inst_logs[user] = buff[1]
+                                continue
+                            else:
+                                inst_logs[user] = buff[2]
+                                continue
+            if "site" in link['result'][0]:
+                pattern = re.compile('https://www.instagram.com/')
+                if link['result'][0]['site'] != '':
+                    if pattern.match(link['result'][0]['site']) != None:
+                        inst_logs[user] = link['result'][0]['site'].split("/")[3]
+        return self.result("success", [inst_logs], None)
+
