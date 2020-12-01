@@ -20,7 +20,6 @@ def request(URL: str, data: dict, format_JSON=False, method="POST"):
         result: json or text content
     """
     log.debug(f"Execute request '{URL}' with params {data}")
-    #full_url = f"{URL}?{'&'.join(f'{arg}={data[arg]}' for arg in data)}"
     try:
         sess = create_session()
         response = (sess.post if method == "POST" else sess.get)(url=URL, data=data)
