@@ -1,10 +1,24 @@
+import pytest
+#
 from settings import settings
 from vk import VK
-from main import init_app
 
-init_app()
-vk_module = VK(settings)
+"""
+Модуль тестирования API
+USAGE: pytest --settings <setting filename> vk
+"""
 
-# def test_getFriends():
-#     assert vk_module.getFriends(186101748)['result'] != None
-#     assert vk_module.getFriends(245046095)['result'] == None
+@pytest.fixture()
+def setting(pytestconfig):
+    return pytestconfig.getoption("settings")
+
+def test_initmodule(setting):
+    settings.load_JSON(setting)
+    global vk_module
+    vk_module = VK(settings)
+
+def test_getFriends():
+    print(vk_module.getFriends(186101748))
+
+
+

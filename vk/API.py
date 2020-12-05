@@ -139,6 +139,48 @@ class VK:
             friends += res_friends["response"]["items"]
         return self.result("success", friends, None)
 
+    def getFollowers(self, user_id: int, max_followers: int=10000):
+        """
+        Collect followers of user
+        Arguments:
+            user_id: int – id of user
+            max_followers: int - num of returned followers
+        Return:
+            result: dict – {result: [users_id], error: {id: text_error, ...}, status: success or fail}
+        """
+        followers = []
+        profiles_per_iteration = 1000
+        for offset_profiles in range(0, max_followers, profiles_per_iteration):
+            try:
+                res_followers = self._vkapi_request(
+                    "users.getFollowers",
+                    {
+                        "user_id": user_id,
+                        "count": profiles_per_iteration,
+                        "offset": offset_profiles,
+                    })
+            except VkApiProfileIsPrivate:
+                return self.result("fail", None, [{user_id: "30: This profile is private"}])
+            except VkApiToManyExecute:
+                return self.result("fail", None, [{user_id: "6: Too many executes"}])
+            except VkApiTooManySameExecute:
+                return self.result("fail", None, [{user_id: "9: Too many same actions"}])
+            except VkApiDeletedUser:
+                return self.result("fail", None, [{user_id: "18: Deleted user"}])
+            except VkApiBannedUser:
+                return self.result("fail", None, [{user_id: "37: Banned user"}])
+            except VkApiLimitReached:
+                return self.result("fail", None, [{user_id: "29: Limit rate"}])
+            except:
+                return self.result("fail", None, [{user_id: "Unknown error"}])
+            if "req_err" in res_followers:
+                return self.result("fail", None, [{user_id: res_followers}])
+            log.debug(f'user_id: {user_id}; offset: {offset_profiles}; ppi: {profiles_per_iteration} -> OK')
+            if len(res_followers["response"]['items']) == 0:
+                break
+            followers += res_followers["response"]["items"]
+        return self.result("success", followers, None)
+
     def getFriendsOfFriends(self, user_id: int):
         """
         Collect friends of friends of user
@@ -310,12 +352,59 @@ class VK:
             groups += res_groups["response"]["items"]
         return self.result("success", groups, None)
 
+    def getGroupMembers(self, group_id: int, sort: str="id_asc", max_members: int=10000000):
+        """
+        Collect members of group
+        Arguments:
+            group_id: int – id of group
+             sort: str - sort
+            max_members: int - num of returned members
+        Return:
+            result: dict – {result: [members_ids], error: {id: text_error, ...}, status: success or fail}
+        """
+        members = []
+        members_per_iteration = 1000
+        for offset_members in range(0, max_members, members_per_iteration):
+            try:
+                res_members = self._vkapi_request(
+                    "groups.getMembers",
+                    {
+                        "group_id": group_id,
+                        "count": members_per_iteration,
+                        "offset": offset_members,
+                    })
+            except VkApiProfileIsPrivate:
+                return self.result("fail", None, [{group_id: "30: This profile is private"}])
+            except VkApiToManyExecute:
+                return self.result("fail", None, [{group_id: "6: Too many executes"}])
+            except VkApiTooManySameExecute:
+                return self.result("fail", None, [{group_id: "9: Too many same actions"}])
+            except VkApiDeletedUser:
+                return self.result("fail", None, [{group_id: "18: Deleted user"}])
+            except VkApiBannedUser:
+                return self.result("fail", None, [{group_id: "37: Banned user"}])
+            except VkApiLimitReached:
+                return self.result("fail", None, [{group_id: "29: Limit rate"}])
+            except VkApiBadIdOfGroup:
+                return self.result("fail", None, [{group_id: "125: Bad id of group"}])
+            except VkApiLimitedListOfGroups:
+                return self.result("fail", None, [{group_id: "260: Limited list of groups"}])
+            except:
+                return self.result("fail", None, [{group_id: "Unknown error"}])
+            if "req_err" in res_members:
+                return self.result("fail", None, [{group_id: res_members}])
+            log.debug(f'user_id: {group_id}; offset: {offset_members}; ppi: {members_per_iteration} -> OK')
+            if len(res_members["response"]['items']) == 0:
+                break
+            members += res_members["response"]["items"]
+        return self.result("success", members, None)
+
     def getUserPhotos(self, user_id: int, extended: int=0, max_photos: int=200):
         """
         Collect photos of user
         Arguments:
             user_id: int – id of user
-            extended: bool - extended information
+            extended: int - extended information
             max_photos: int - num of returned photos
         Return:
             result: dict – {result: [{user id, photos info, ...}], error: {id: text_error, ...}, status: success or fail}
@@ -361,7 +450,7 @@ class VK:
         Collect photos of group
         Arguments:
             user_id: int – id of group
-            extended: bool - extended information
+            extended: int - extended information
             max_photos: int - num of returned photos
         Return:
             result: dict – {result: [{group id, photos info, ...}], error: {id: text_error, ...}, status: success or fail}
@@ -402,12 +491,60 @@ class VK:
             photos += res_photos["response"]["items"]
         return self.result("success", photos, None)
 
+    def getUserVideos(self, user_id: int, extended: int=0, max_videos: int=200):
+        """
+        Collect videos of user
+        Arguments:
+            user_id: int – id of user
+            extended: int - extended information
+            max_photos: int - num of returned videos
+        Return:
+            result: dict – {result: [{user id, videos info, ...}], error: {id: text_error, ...}, status: success or fail}
+        """
+        videos = []
+        videos_per_iteration = 1
+        for offset_videos in range(0, max_videos, videos_per_iteration):
+            try:
+                res_videos = self._vkapi_request(
+                    "video.get",
+                    {
+                        "owner_id": user_id,
+                        "count": videos_per_iteration,
+                        "offset": offset_videos,
+                        "extended": extended,
+                    })
+            except VkApiProfileIsPrivate:
+                return self.result("fail", None, [{user_id: "30: This profile is private"}])
+            except VkApiToManyExecute:
+                return self.result("fail", None, [{user_id: "6: Too many executes"}])
+            except VkApiTooManySameExecute:
+                return self.result("fail", None, [{user_id: "9: Too many same actions"}])
+            except VkApiDeletedUser:
+                return self.result("fail", None, [{user_id: "18: Deleted user"}])
+            except VkApiBannedUser:
+                return self.result("fail", None, [{user_id: "37: Banned user"}])
+            except VkApiLimitReached:
+                return self.result("fail", None, [{user_id: "29: Limit rate"}])
+            except VkApiInaccessibleContent:
+                return self.result("fail", None, [{user_id: "19: Inaccessible content"}])
+            except VkApiNoAdmission:
+                return self.result("fail", None, [{user_id: "204: No admission"}])
+            except:
+                return self.result("fail", None, [{user_id: "Unknown error"}])
+            if "req_err" in res_videos:
+                return self.result("fail", None, [{user_id: res_videos}])
+            log.debug(f'user_id: {user_id}; offset: {offset_videos}; ppi: {videos_per_iteration} -> OK')
+            if len(res_videos["response"]['items']) == 0:
+                break
+            videos += res_videos["response"]["items"]
+        return self.result("success", videos, None)
+
     def getUserWall(self, user_id: int, extended: int=0, max_notes: int=100):
         """
         Collect wall notes of user
         Arguments:
             user_id: int – id of user
-            extended: bool - extended information
+            extended: int - extended information
             max_photos: int - num of returned wall notes
         Return:
             result: dict – {result: [{user id, wall notes info, ...}], error: {id: text_error, ...}, status: success or fail}
@@ -453,7 +590,7 @@ class VK:
         Collect wall notes of group
         Arguments:
             user_id: int – id of user
-            extended: bool - extended information
+            extended: int - extended information
             max_photos: int - num of returned wall notes
         Return:
             result: dict – {result: [{group id, wall notes info, ...}], error: {id: text_error, ...}, status: success or fail}
@@ -493,3 +630,120 @@ class VK:
                 break
             notes += res_notes["response"]["items"]
         return self.result("success", notes, None)
+
+    def getWhoLikes(self, user_or_group:int, type:str, owner_id: int, item_id: int, friends_only:int=0, extended: int=0, max_likes: int=10000000):
+        """
+        Collect likes of object
+        Arguments:
+            user_or_group:int - 0 is user, 1 is group
+            type:str - type of object(post, ...)
+            owner_id: int – id of user or group
+            item_id: int - id of object
+            friends_only: int - указывает, необходимо ли возвращать только пользователей, которые являются друзьями текущего пользователя
+            extended: int - extended information
+            max_likes: int - max num of likes
+        Return:
+            result: dict – {result: [users_ids], error: {id: text_error, ...}, status: success or fail}
+        """
+        if user_or_group:
+            owner_id = -owner_id
+        likes = []
+        likes_per_iteration = 1000
+        for offset_likes in range(0, max_likes, likes_per_iteration):
+            try:
+                res_likes = self._vkapi_request(
+                    "likes.getList",
+                    {
+                        "type": type,
+                        "owner_id": owner_id,
+                        "item_id": item_id,
+                        "friends_only": friends_only,
+                        "count": likes_per_iteration,
+                        "offset": offset_likes,
+                        "extended": extended,
+                    })
+            except VkApiProfileIsPrivate:
+                return self.result("fail", None, [{owner_id: "30: This profile is private"}])
+            except VkApiToManyExecute:
+                return self.result("fail", None, [{owner_id: "6: Too many executes"}])
+            except VkApiTooManySameExecute:
+                return self.result("fail", None, [{owner_id: "9: Too many same actions"}])
+            except VkApiDeletedUser:
+                return self.result("fail", None, [{owner_id: "18: Deleted user"}])
+            except VkApiBannedUser:
+                return self.result("fail", None, [{owner_id: "37: Banned user"}])
+            except VkApiLimitReached:
+                return self.result("fail", None, [{owner_id: "29: Limit rate"}])
+            except VkApiInaccessibleContent:
+                return self.result("fail", None, [{owner_id: "19: Inaccessible content"}])
+            except VkApiNoAdmission:
+                return self.result("fail", None, [{owner_id: "204: No admission"}])
+            except VkApiReactionCanNotBeApplied:
+                return self.result("fail", None, [{owner_id: "232: Reaction can not be applied to the object"}])
+            except:
+                return self.result("fail", None, [{owner_id: "Unknown error"}])
+            if "req_err" in res_likes:
+                return self.result("fail", None, [{owner_id: res_likes}])
+            log.debug(f'user_id: {owner_id}; offset: {offset_likes}; ppi: {likes_per_iteration} -> OK')
+            if len(res_likes["response"]['items']) == 0:
+                break
+            likes += res_likes["response"]["items"]
+        return self.result("success", likes, None)
+
+    def getComments(self, user_or_group:int, owner_id: int, post_id: int, extended: int=0, max_comments: int=10000000):
+        """
+        Collect comments of post
+        Arguments:
+            user_or_group:int - 0 is user, 1 is group
+            owner_id: int – id of user or group
+            post_id: int - id of object
+            extended: int - extended information
+            max_comments: int - max num of likes
+        Return:
+            result: dict – {result: [info...], error: {id: text_error, ...}, status: success or fail}
+        """
+        if user_or_group:
+            owner_id = -owner_id
+        comments = []
+        comments_per_iteration = 100
+        for offset_comments in range(0, max_comments, comments_per_iteration):
+            try:
+                res_comments = self._vkapi_request(
+                    "wall.getComments",
+                    {
+                        "owner_id": owner_id,
+                        "post_id": post_id,
+                        "need_likes": 1,
+                        "count": comments_per_iteration,
+                        "offset": offset_comments,
+                        "extended": extended,
+                    })
+            except VkApiProfileIsPrivate:
+                return self.result("fail", None, [{owner_id: "30: This profile is private"}])
+            except VkApiToManyExecute:
+                return self.result("fail", None, [{owner_id: "6: Too many executes"}])
+            except VkApiTooManySameExecute:
+                return self.result("fail", None, [{owner_id: "9: Too many same actions"}])
+            except VkApiDeletedUser:
+                return self.result("fail", None, [{owner_id: "18: Deleted user"}])
+            except VkApiBannedUser:
+                return self.result("fail", None, [{owner_id: "37: Banned user"}])
+            except VkApiLimitReached:
+                return self.result("fail", None, [{owner_id: "29: Limit rate"}])
+            except VkApiInaccessibleContent:
+                return self.result("fail", None, [{owner_id: "19: Inaccessible content"}])
+            except VkApiNoAdmission:
+                return self.result("fail", None, [{owner_id: "204: No admission"}])
+            except VkApiReactionCanNotBeApplied:
+                return self.result("fail", None, [{owner_id: "232: Reaction can not be applied to the object"}])
+            except VkApiNoAdmissionToComments:
+                return self.result("fail", None, [{owner_id: "212: No admission to comments"}])
+            except:
+                return self.result("fail", None, [{owner_id: "Unknown error"}])
+            if "req_err" in res_comments:
+                return self.result("fail", None, [{owner_id: res_comments}])
+            log.debug(f'user_id: {owner_id}; offset: {offset_comments}; ppi: {comments_per_iteration} -> OK')
+            if len(res_comments["response"]['items']) == 0:
+                break
+            comments += res_comments["response"]["items"]
+        return self.result("success", comments, None)

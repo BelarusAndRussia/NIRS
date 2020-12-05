@@ -25,14 +25,37 @@ class VkApiLimitReached(BaseVkError):
 class VkApiBannedUser(BaseVkError):
     """ Профиль пользователя ВК заблокирован """
 
+
 class VkApiLimitedListOfGroups(BaseVkError):
     """ Доступ к запрошенному списку групп ограничен настройками приватности пользователя """
+
 
 class VkApiInaccessibleContent(BaseVkError):
     """ Контент недоступен """
 
+
 class VkInvalidToken(BaseVkError):
     """ Токен пользователя не действителен """
 
+
 class VkInvalidSettings(BaseVkError):
     """ Заданные параметры не корректны """
+
+
+class VkApiNoAdmission(BaseVkError):
+    """ Нет доступа """
+
+
+class VkApiReactionCanNotBeApplied(BaseVkError):
+    """ Действие неприменимо к объекту """
+
+
+class VkApiBadIdOfGroup(BaseVkError):
+    """ Недопустимый идентификатор сообщества """
+
+
+class VkApiNoAdmissionToComments(BaseVkError):
+    """ Нет доступа к комментариям"""
+
+
+
