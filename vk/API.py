@@ -84,6 +84,14 @@ class VK:
                 raise VkApiLimitReached
             elif data["error"]["error_code"] == 5:
                 raise VkInvalidToken
+            elif data["error"]["error_code"] == 19:
+                raise VkApiInaccessibleContent
+            elif data["error"]["error_code"] == 204:
+                raise VkApiNoAdmission
+            elif data["error"]["error_code"] == 232:
+                raise VkApiReactionCanNotBeApplied
+            elif data["error"]["error_code"] == 212:
+                raise VkApiNoAdmissionToComments
             else:
                 raise BaseVkError
         return data
@@ -107,7 +115,10 @@ class VK:
             result: dict – {result: [users_id], error: {id: text_error, ...}, status: success or fail}
         """
         friends = []
-        profiles_per_iteration = 5000
+        if max_friends < 1000:
+            profiles_per_iteration = max_friends
+        else:
+            profiles_per_iteration = 1000
         for offset_profiles in range(0, max_friends, profiles_per_iteration):
             try:
                 res_friends = self._vkapi_request(
@@ -129,6 +140,14 @@ class VK:
                 return self.result("fail", None, [{user_id: "37: Banned user"}])
             except VkApiLimitReached:
                 return self.result("fail", None, [{user_id: "29: Limit rate"}])
+            except VkApiInaccessibleContent:
+                return self.result("fail", None, [{user_id: "19: Inaccessible content"}])
+            except VkApiNoAdmission:
+                return self.result("fail", None, [{user_id: "204: No admission"}])
+            except VkApiReactionCanNotBeApplied:
+                return self.result("fail", None, [{user_id: "232: Reaction can not be applied to the object"}])
+            except VkInvalidToken:
+                return self.result("fail", None, [{user_id: "5: Invalid token"}])
             except:
                 return self.result("fail", None, [{user_id: "Unknown error"}])
             if "req_err" in res_friends:
@@ -149,7 +168,10 @@ class VK:
             result: dict – {result: [users_id], error: {id: text_error, ...}, status: success or fail}
         """
         followers = []
-        profiles_per_iteration = 1000
+        if max_followers < 1000:
+            profiles_per_iteration = max_followers
+        else:
+            profiles_per_iteration = 1000
         for offset_profiles in range(0, max_followers, profiles_per_iteration):
             try:
                 res_followers = self._vkapi_request(
@@ -207,7 +229,7 @@ class VK:
             log.exception("function: getFriends - handled unknown error")
         return fr_deep
 
-    def getUsers(self, user_id: int, fields: list):
+    def getUsers(self, user_id: int, fields: list=[]):
         """
         Collect information of user
         Arguments:
@@ -318,7 +340,10 @@ class VK:
             result: dict – {result: [groups_id], error: {id: text_error, ...}, status: success or fail}
         """
         groups = []
-        groups_per_iteration = 1000
+        if max_groups < 1000:
+            groups_per_iteration = max_groups
+        else:
+            groups_per_iteration = 1000
         for offset_groups in range(0, max_groups, groups_per_iteration):
             try:
                 res_groups = self._vkapi_request(
@@ -362,7 +387,10 @@ class VK:
             result: dict – {result: [members_ids], error: {id: text_error, ...}, status: success or fail}
         """
         members = []
-        members_per_iteration = 1000
+        if max_members < 1000:
+            members_per_iteration = max_members
+        else:
+            members_per_iteration = 1000
         for offset_members in range(0, max_members, members_per_iteration):
             try:
                 res_members = self._vkapi_request(
@@ -409,7 +437,10 @@ class VK:
             result: dict – {result: [{group id, photos info, ...}], error: {id: text_error, ...}, status: success or fail}
         """
         photos = []
-        photos_per_iteration = 200
+        if max_photos < 200:
+            photos_per_iteration = max_photos
+        else:
+            photos_per_iteration = 200
         for offset_photos in range(0, max_photos, photos_per_iteration):
             try:
                 res_photos = self._vkapi_request(
@@ -455,7 +486,10 @@ class VK:
             result: dict – {result: [{user id, videos info, ...}], error: {id: text_error, ...}, status: success or fail}
         """
         videos = []
-        videos_per_iteration = 200
+        if max_videos < 200:
+            videos_per_iteration = max_videos
+        else:
+            videos_per_iteration = 200
         for offset_videos in range(0, max_videos, videos_per_iteration):
             try:
                 res_videos = self._vkapi_request(
@@ -503,7 +537,10 @@ class VK:
             result: dict – {result: [{group id, wall notes info, ...}], error: {id: text_error, ...}, status: success or fail}
         """
         notes = []
-        notes_per_iteration = 100
+        if max_notes < 100:
+            notes_per_iteration = max_notes
+        else:
+            notes_per_iteration = 100
         for offset_notes in range(0, max_notes, notes_per_iteration):
             try:
                 res_notes = self._vkapi_request(
@@ -552,7 +589,10 @@ class VK:
             result: dict – {result: [users_ids], error: {id: text_error, ...}, status: success or fail}
         """
         likes = []
-        likes_per_iteration = 1000
+        if max_likes < 1000:
+            likes_per_iteration = max_likes
+        else:
+            likes_per_iteration = 1000
         for offset_likes in range(0, max_likes, likes_per_iteration):
             try:
                 res_likes = self._vkapi_request(
@@ -606,7 +646,10 @@ class VK:
             result: dict – {result: [info...], error: {id: text_error, ...}, status: success or fail}
         """
         comments = []
-        comments_per_iteration = 100
+        if max_comments < 100:
+            comments_per_iteration = max_comments
+        else:
+            comments_per_iteration = 100
         for offset_comments in range(0, max_comments, comments_per_iteration):
             try:
                 res_comments = self._vkapi_request(
@@ -648,15 +691,3 @@ class VK:
                 break
             comments += res_comments["response"]["items"]
         return self.result("success", comments, None)
-
-    def getAudio(self, owner_id: int, album_id: int=-1, max_audio: int=40000):
-        """
-        Collect audio of user
-        Arguments:
-            owner_id: int – id of user or group
-            album_id: int - id of interested album
-            max_audio: int - num of returned audio
-        Return:
-            result: dict – {result: [audio], error: {id: text_error, ...}, status: success or fail}
-        """
-       
