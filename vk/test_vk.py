@@ -5,6 +5,9 @@ from vk import VK
 
 MY_ID = 186101748
 DUROV_ID = 1
+DUROV_ITEM = 456264771
+PUBLIC_ID = -22746750
+PUBLIC_ITEM = 11427508
 
 """
 Модуль тестирования API
@@ -53,15 +56,15 @@ def test_getVideos():
     assert len(videos) == 4
 
 def test_getWhoLikes():
-    item_id = 456264771
+    item_id = DUROV_ITEM
     whoLikes = vk_module.getWhoLikes('photo', DUROV_ID, item_id, max_likes=1000)['result']
     assert len(whoLikes) == 1000
 
 def test_getComments():
-    item_id = 456264771
+    item_id = DUROV_ITEM
     comments_durov = vk_module.getComments(DUROV_ID, item_id)['result']
-    barca_id = -22746750
-    item_id = 11427508
+    barca_id = PUBLIC_ID
+    item_id = PUBLIC_ITEM
     comments_barca = vk_module.getComments(barca_id, item_id, max_comments=100)['result']
     assert comments_durov == None
     assert len(comments_barca) == 100

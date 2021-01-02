@@ -64,4 +64,4 @@ if __name__ == '__main__':
     init_app()
     #
     vk_module = VK(settings)
-    print(vk_module.getComments(0, 85635407, 3199))
+    print(vk_module.getFriends(186101748))

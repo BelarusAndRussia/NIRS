@@ -11,6 +11,9 @@ from settings import Settings
 
 log = logging.getLogger(__name__)
 
+OPEN_ACC = 186101748
+SLEEPING = 0.4
+
 
 class VK:
     """ Модуль работы с VK """
@@ -33,39 +36,47 @@ class VK:
     def check_tokens(self):
         for token in self._TOKENS:
             req_data = {
-                "access_token": token,
                 "v": self.API_VERSION,
-                "user_id": 186101748 #open account
+                "user_id": OPEN_ACC
             }
-            data = request(f"https://api.vk.com/method/users.get", req_data, format_JSON=True)
+            data = self._vkapi_request("users.get", req_data, token)
             if "req_err" in data:
                 self._TOKENS.remove(token)
 
-    def _vkapi_request(self, method: str, args: dict):
+    def _vkapi_request(self, method: str, args: dict, token: str=None):
         """
         Make api requests to vk.com
         Arguments:
             method: str – method VkAPI
-            args: dict – parameters for executed api-method.
+            args: dict – parameters for executed api-method
+            token: str - token which use for request
         Return:
             result: dict – VkAPI response json
         """
         log.debug(f"Execute VKAPI method '{method}' with params {args}")
-        if len(self._TOKENS):
-            token = random.choice(self._TOKENS)
-            self._TOKENS.remove(token)
-            self._USED_TOKENS.append(token)
+        if token != None:
+            req_data = {
+                "access_token": token,
+                "v": self.API_VERSION
+            }
+            if args:
+                req_data.update(args)
         else:
-            time.sleep(0.4)
-            self._TOKENS = self._USED_TOKENS
-            self._USED_TOKENS = []
-            token = random.choice(self._TOKENS)
-        req_data = {
-            "access_token": token,
-            "v": self.API_VERSION
-        }
-        if args:
-            req_data.update(args)
+            if self._TOKENS:
+                token = random.choice(self._TOKENS)
+                self._TOKENS.remove(token)
+                self._USED_TOKENS.append(token)
+            else:
+                time.sleep(SLEEPING)
+                self._TOKENS = self._USED_TOKENS
+                self._USED_TOKENS = []
+                token = random.choice(self._TOKENS)
+            req_data = {
+                "access_token": token,
+                "v": self.API_VERSION
+            }
+            if args:
+                req_data.update(args)
         data = request(f"https://api.vk.com/method/{method}", req_data, format_JSON=True)
         if "req_err" in data:
             log.error(f"VKApi request error! {data}")
