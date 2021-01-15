@@ -64,4 +64,4 @@ if __name__ == '__main__':
     init_app()
     #
     vk_module = VK(settings)
-    print(vk_module.getFriends(186101748))
+    print(vk_module.getWhoLikes('photo', 1, 456264771, max_likes=1000))

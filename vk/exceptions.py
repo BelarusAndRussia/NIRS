@@ -55,7 +55,15 @@ class VkApiBadIdOfGroup(BaseVkError):
 
 
 class VkApiNoAdmissionToComments(BaseVkError):
-    """ Нет доступа к комментариям"""
+    """ Нет доступа к комментариям """
+
+
+class VkApiCompileError(BaseVkError):
+    """ Невозможно скомпилировать код """
+
+
+class VkApiDoingError(BaseVkError):
+    """ Ошибка выполнения кода """
 
 
 
