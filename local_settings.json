@@ -3,5 +3,6 @@
     "log_file": "log/default.log",
     "log_level": 10,
     "encoding": "utf-8",
-    "tokens_file_vk": "tokens/vk.token"
+    "tokens_file_vk": "tokens/vk.token",
+    "tokens_file_inst": "tokens/instagram.token"
 }

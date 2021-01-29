@@ -509,13 +509,14 @@ class VK:
         Return:
             result: dict – {result: [members_ids], error: {id: text_error, ...}, status: success or fail}
         """
+        group_id = -group_id
         members = []
         if max_members < 1000:
             members_per_iteration = max_members
         else:
             members_per_iteration = 1000
         code = f'var members_per_iteration = {members_per_iteration};' \
-               f'var user_id = {user_id};' \
+               f'var group_id = {group_id};' \
                f'var max_members = {max_members};' \
                'var cur_offset = 0;' \
                'var res = [];' \
@@ -526,7 +527,7 @@ class VK:
                '   {' \
                '       return res;' \
                '   }' \
-               '   var buff = API.groups.getMembers({"user_id": user_id,' \
+               '   var buff = API.groups.getMembers({"group_id": group_id,' \
                '                                     "offset": cur_offset,' \
                '                                     "count": members_per_iteration});' \
                '   if (buff.items.length < 1)' \

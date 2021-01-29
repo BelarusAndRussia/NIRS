@@ -43,6 +43,10 @@ def test_getGroups():
     groups = vk_module.getGroups(MY_ID, max_groups=10)['result']
     assert len(groups) == 10
 
+def test_getGroupMembers():
+    members = vk_module.getGroupMembers(PUBLIC_ID, max_members=100)['result']
+    assert len(members) == 100
+
 def test_getPhotos():
     photos = vk_module.getPhotos(DUROV_ID, max_photos=10)['result']
     assert len(photos) == 10

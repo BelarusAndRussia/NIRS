@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.join(MAIN_DIR, 'vk/'))
 #
 from settings import settings
 from vk import VK
+from inst import INSTAGRAM
 
 __VERSION__ = '0.1.1'
 
@@ -63,5 +64,7 @@ def init_app():
 if __name__ == '__main__':
     init_app()
     #
-    vk_module = VK(settings)
-    print(vk_module.getWhoLikes('photo', 1, 456264771, max_likes=1000))
+    #vk_module = VK(settings)
+    inst_module = INSTAGRAM(settings)
+    print(inst_module.get_followers(1458924954))
+    print("OK")
