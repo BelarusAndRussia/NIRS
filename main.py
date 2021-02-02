@@ -70,4 +70,4 @@ if __name__ == '__main__':
     # inst_module = INSTAGRAM(settings)
     # print(inst_module.get_followers(1458924954))
     analysis = ANALYSIS(settings)
-    print(analysis.DetAgeOfVkUser(257875098))
+    print(analysis.DetAgeOfVkUser(89767667))
