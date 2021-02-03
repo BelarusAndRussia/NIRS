@@ -1,7 +1,7 @@
 import pytest
 #
 from settings import settings
-from inst import INSTAGRAM
+from inst import Instagram
 
 MY_ID = 1458924954
 MY_USERNAME = "daniel_turpakov"
@@ -19,7 +19,7 @@ def setting(pytestconfig):
 def test_initmodule(setting):
     settings.load_JSON(setting)
     global inst_module
-    inst_module = INSTAGRAM(settings)
+    inst_module = Instagram(settings)
 
 def test_get_userinfo():
     id = inst_module.get_userinfo(MY_USERNAME)['pk']

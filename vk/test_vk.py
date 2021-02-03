@@ -23,53 +23,53 @@ def test_initmodule(setting):
     global vk_module
     vk_module = VK(settings)
 
-def test_getUsers():
-    f_name = vk_module.getUsers(DUROV_ID)['result'][0]['first_name']
-    l_name = vk_module.getUsers(DUROV_ID)['result'][0]['last_name']
+def test_get_users():
+    f_name = vk_module.get_users(DUROV_ID)['result'][0]['first_name']
+    l_name = vk_module.get_users(DUROV_ID)['result'][0]['last_name']
     assert f_name == 'Павел'
     assert l_name == 'Дуров'
 
-def test_getFriends():
-    my_friend = vk_module.getFriends(MY_ID)['result']
-    durov_friend = vk_module.getFriends(DUROV_ID)['result']
+def test_get_friends():
+    my_friend = vk_module.get_friends(MY_ID)['result']
+    durov_friend = vk_module.get_friends(DUROV_ID)['result']
     assert len(my_friend) != 0
     assert len(durov_friend) == 0
 
-def test_getFollowers():
-    followers = vk_module.getFollowers(1, max_followers=100)['result']
+def test_get_followers():
+    followers = vk_module.get_followers(1, max_followers=100)['result']
     assert len(followers) == 100
 
-def test_getGroups():
-    groups = vk_module.getGroups(MY_ID, max_groups=10)['result']
+def test_get_groups():
+    groups = vk_module.get_groups(MY_ID, max_groups=10)['result']
     assert len(groups) == 10
 
-def test_getGroupMembers():
-    members = vk_module.getGroupMembers(PUBLIC_ID, max_members=100)['result']
+def test_get_group_members():
+    members = vk_module.get_group_members(PUBLIC_ID, max_members=100)['result']
     assert len(members) == 100
 
-def test_getPhotos():
-    photos = vk_module.getPhotos(DUROV_ID, max_photos=10)['result']
+def test_get_photos():
+    photos = vk_module.get_photos(DUROV_ID, max_photos=10)['result']
     assert len(photos) == 10
 
-def test_getWall():
-    notes_durov = vk_module.getWall(DUROV_ID, max_notes=10)['result']
+def test_get_wall():
+    notes_durov = vk_module.get_wall(DUROV_ID, max_notes=10)['result']
     assert len(notes_durov) == 10
 
-def test_getVideos():
-    videos = vk_module.getVideos(DUROV_ID)['result']
+def test_get_videos():
+    videos = vk_module.get_videos(DUROV_ID)['result']
     assert len(videos) == 4
 
-def test_getWhoLikes():
+def test_get_who_likes():
     item_id = DUROV_ITEM
-    whoLikes = vk_module.getWhoLikes('photo', DUROV_ID, item_id, max_likes=1000)['result']
+    whoLikes = vk_module.get_who_likes('photo', DUROV_ID, item_id, max_likes=1000)['result']
     assert len(whoLikes) == 1000
 
-def test_getComments():
+def test_get_comments():
     item_id = DUROV_ITEM
-    comments_durov = vk_module.getComments(DUROV_ID, item_id)['result']
+    comments_durov = vk_module.get_comments(DUROV_ID, item_id)['result']
     barca_id = PUBLIC_ID
     item_id = PUBLIC_ITEM
-    comments_barca = vk_module.getComments(barca_id, item_id, max_comments=100)['result']
+    comments_barca = vk_module.get_comments(barca_id, item_id, max_comments=100)['result']
     assert comments_durov == None
     assert len(comments_barca) == 100
 

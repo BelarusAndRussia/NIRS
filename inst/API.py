@@ -26,7 +26,7 @@ class WEBAPIClient(instagram_web_api.Client):
         return "4f8732eb9ba7d1c8e8897a75d6474d4eb3f5279137431b2aafb71fafe2abe178"
 
 
-class INSTAGRAM:
+class Instagram:
     """
         ******************************
         Class for working with Instagram API
@@ -47,10 +47,10 @@ class INSTAGRAM:
             Auth info is line of format <LOGIN>:<PASSWORD>
         """
         if force:
-            log.info("Force update instasessions from file {}".format(
+            log.info("Force обновил instasessions из файла {}".format(
                 auth_file_name))
             self._instaapi_sessions.clear()
-        log.info("Load auth info for instaaccounts from file {} and create new sessions".format(
+        log.info("Загружены данные для аккаунта инстраграма из файла {} и создана новая сессия".format(
            auth_file_name))
         for login_pass in open(auth_file_name):
             login, passwd = login_pass.strip().split(":")
@@ -60,31 +60,31 @@ class INSTAGRAM:
                 if USE_HTTP_CLIENT else\
                     instagram_private_api.Client(login, passwd)
             self._instaapi_sessions.add(_session)
-        log.info("Total {} instagram sessions.".format(
+        log.info("Полная {} сессия инстаграм.".format(
             len(self._instaapi_sessions)))
         self._session_generator = itertools.cycle(self._instaapi_sessions)
 
     def session(self):
         """ Create sessions for instagram API """
         if not self._session_generator:
-            raise NullSessionException("Sessions for instagram was not created!")
+            raise NullSessionException("Сессия для инстаграма была создана!")
         return next(self._session_generator)
 
     def get_userinfo(self, username):
         """ Get user info by username """
-        log.debug(f"Execute INSTAPI method 'get_userinfo' with params: {username}")
+        log.debug(f"Вызван INSTAPI метод 'get_userinfo' с параметрами: {username}")
         data = self.session().user_info2(user_name=username) \
             if USE_HTTP_CLIENT else \
                 self.session().username_info(user_name=username)
 
         if not data or not USE_HTTP_CLIENT and data.get("status", "") != "ok":
-            raise NullUserDataException(f"Empty data about instagram account username='{username}'")
+            raise NullUserDataException(f"Нет данных об инстаграм аккаунте='{username}'")
         if not USE_HTTP_CLIENT:
             data = data.get("user")
         return data
 
     def get_general_userinfo(self, username):
-        log.debug(f"Execute INSTAPI method 'get_general_userinfo' with params: {username}")
+        log.debug(f"Вызван INSTAPI метод 'get_general_userinfo' с параметрами: {username}")
         target_user_info = self.get_userinfo(username)
         return {
             "user_id": target_user_info["id"] if USE_HTTP_CLIENT else target_user_info["pk"],
@@ -134,7 +134,7 @@ class INSTAGRAM:
 
     def get_followers(self, user_id, max_count=None):
         """ Get user followers """
-        log.debug(f"Execute INSTAPI method 'get_followers' with params: {user_id}")
+        log.debug(f"Вызван INSTAPI метод 'get_followers' с параметрами: {user_id}")
         _session = self.session()
         return self._get_users_from_list(user_id, _session.user_followers,
             lambda info: info.get("data", {}).get("user", {}).get("edge_followed_by", {})\
@@ -147,7 +147,7 @@ class INSTAGRAM:
 
     def get_following(self, user_id, max_count=None):
         """ Get accounts by user following """
-        log.debug(f"Execute INSTAPI method 'get_following' with params: {user_id}")
+        log.debug(f"Вызван INSTAPI метод 'get_following' с параметрами: {user_id}")
         _session = self.session()
         return self._get_users_from_list(user_id, _session.user_following,
             lambda info: info.get("data", {}).get("user", {}).get("edge_follow", {})\
@@ -164,7 +164,7 @@ class INSTAGRAM:
         :param
             - user_id: Account id in instagram
         """
-        log.debug(f"Execute INSTAPI method 'get_user_photos' with params: {user_id}")
+        log.debug(f"Вызван INSTAPI метод 'get_user_photos' с параметрами: {user_id}")
         result = {}
         _session = self.session()
         _first = True

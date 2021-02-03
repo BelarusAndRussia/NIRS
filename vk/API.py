@@ -54,7 +54,7 @@ class VK:
         Return:
             result: dict – VkAPI response json
         """
-        log.debug(f"Execute VKAPI method '{method}' with params {args}")
+        log.debug(f"Вызван VKAPI метод '{method}' с параметрами {args}")
         if token != None:
             req_data = {
                 "access_token": token,
@@ -150,7 +150,7 @@ class VK:
             "result": data,
         }
 
-    def getFriends(self, user_id: int, max_friends: int=10000):
+    def get_friends(self, user_id: int, max_friends: int=10000):
         """
         Collect friends of user
         Arguments:
@@ -229,7 +229,7 @@ class VK:
             friends += res_friends['response']
         return self.result("success", friends, None)
 
-    def getFollowers(self, user_id: int, max_followers: int=10000):
+    def get_followers(self, user_id: int, max_followers: int=10000):
         """
         Collect followers of user
         Arguments:
@@ -300,7 +300,7 @@ class VK:
             followers += res_followers['response']
         return self.result("success", followers, None)
 
-    def getFriendsOfFriends(self, user_id: int):
+    def get_friends_of_friends(self, user_id: int):
         """
         Collect friends of friends of user
         Arguments:
@@ -309,24 +309,23 @@ class VK:
             result: dict – {result: {id: [friends], ...}, error: {id: text_error, ...}, status: success or fail}
         """
         fr_deep = {}
-        friends = self.getFriends(user_id)
+        friends = self.get_friends(user_id)
         if friends['result'] == None:
             return friends
         try:
             fr_deep["result"] = {}
             fr_deep["error"] = []
             for user in friends["result"]:
-                fr_2 = self.getFriends(user)
+                fr_2 = self.get_friends(user)
                 fr_deep["result"][user] = fr_2["result"]
                 if fr_2["error"] != None:
                     fr_deep["error"].append(fr_2["error"][0])
             fr_deep["status"] = "success"
         except IndexError:
             fr_deep["status"] = "fail"
-            log.exception("function: getFriends - handled unknown error")
         return fr_deep
 
-    def getUsers(self, user_id: int, fields: list=[]):
+    def get_users(self, user_id: int, fields: list=[]):
         """
         Collect information of user
         Arguments:
@@ -365,7 +364,7 @@ class VK:
         log.debug(f'user_id: {user_id}; fields: {fields} -> OK')
         return self.result("success", res_info["response"], None)
 
-    def getInstOfUser(self, user_id: int):
+    def get_inst_of_user(self, user_id: int):
         """
         Collect instagram login of user
         Arguments:
@@ -374,7 +373,7 @@ class VK:
             result: dict – {result: [{[user_id]: "instagram login"}], error: {id: text_error}, status: success or fail}
         """
         inst_log = {}
-        link = self.getUsers(user_id, ["connections", "status", "site"])
+        link = self.get_users(user_id, ["connections", "status", "site"])
         if "instagram" in link['result'][0]:
             inst_log[user_id] = link['result'][0]["instagram"]
         if "status" in link['result'][0]:
@@ -392,7 +391,7 @@ class VK:
                     inst_log[user_id] = link['result'][0]['site'].split("/")[3]
         return self.result("success", [inst_log], None)
 
-    def getInstOfUserFriends(self, user_id: int):
+    def get_inst_of_user_friends(self, user_id: int):
         """
         Collect instagram logins of user friends
         Arguments:
@@ -401,13 +400,13 @@ class VK:
             result: dict – {result: [{[user_id]: "instagram login", ...}], error: {id: text_error, ...},
             status: success or fail}
         """
-        users = self.getFriends(user_id)
+        users = self.get_friends(user_id)
         if users['result'] == None:
             return users
         users = users['result']
         inst_logs = {}
         for user in users:
-            link = self.getUsers(user, ["connections", "status", "site"])
+            link = self.get_users(user, ["connections", "status", "site"])
             if "instagram" in link['result'][0]:
                 inst_logs[user] = link['result'][0]["instagram"]
                 continue
@@ -427,7 +426,7 @@ class VK:
                         inst_logs[user] = link['result'][0]['site'].split("/")[3]
         return self.result("success", [inst_logs], None)
 
-    def getGroups(self, user_id: int, max_groups: int=5000):
+    def get_groups(self, user_id: int, max_groups: int=5000):
         """
         Collect groups of user
         Arguments:
@@ -500,7 +499,7 @@ class VK:
             groups += res_groups['response']
         return self.result("success", groups, None)
 
-    def getGroupMembers(self, group_id: int, max_members: int=10000000):
+    def get_group_members(self, group_id: int, max_members: int=10000000):
         """
         Collect members of group
         Arguments:
@@ -576,7 +575,7 @@ class VK:
             members += res_members['response']
         return self.result("success", members, None)
 
-    def getPhotos(self, owner_id: int, extended: int=0, max_photos: int=2000):
+    def get_photos(self, owner_id: int, extended: int=0, max_photos: int=2000):
         """
         Collect photos of user or group
         Arguments:
@@ -652,7 +651,7 @@ class VK:
             photos += res_photos['response']
         return self.result("success", photos, None)
 
-    def getVideos(self, owner_id: int, extended: int=0, max_videos: int=1000):
+    def get_videos(self, owner_id: int, extended: int=0, max_videos: int=1000):
         """
         Collect videos of user or group
         Arguments:
@@ -730,7 +729,7 @@ class VK:
             videos += res_videos['response']
         return self.result("success", videos, None)
 
-    def getWall(self, owner_id: int, extended: int=0, max_notes: int = 1000):
+    def get_wall(self, owner_id: int, extended: int=0, max_notes: int = 1000):
         """
         Collect wall notes of user or group
         Arguments:
@@ -806,8 +805,8 @@ class VK:
             notes += res_notes['response']
         return self.result("success", notes, None)
 
-    def getWhoLikes(self, type: str, owner_id: int, item_id: int, friends_only: int = 0, extended: int = 0,
-                    max_likes: int = 10000000):
+    def get_who_likes(self, type: str, owner_id: int, item_id: int, friends_only: int = 0, extended: int = 0,
+                      max_likes: int = 10000000):
         """
         Collect likes of object
         Arguments:
@@ -896,7 +895,7 @@ class VK:
             likes += res_likes['response']
         return self.result("success", likes, None)
 
-    def getComments(self, owner_id: int, post_id: int, extended: int=0, max_comments: int=10000000):
+    def get_comments(self, owner_id: int, post_id: int, extended: int=0, max_comments: int=10000000):
         """
         Collect comments of post
         Arguments:
