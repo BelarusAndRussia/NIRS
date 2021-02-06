@@ -8,8 +8,11 @@ MAIN_DIR = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(MAIN_DIR, 'irequests/'))
 sys.path.insert(0, os.path.join(MAIN_DIR, 'settings/'))
 sys.path.insert(0, os.path.join(MAIN_DIR, 'vk/'))
+sys.path.insert(0, os.path.join(MAIN_DIR, 'inst/'))
+sys.path.insert(0, os.path.join(MAIN_DIR, 'analysis/'))
 #
 from settings import settings
+from vk import VK
 from analysis import Analysis
 
 __VERSION__ = '0.1.1'
@@ -64,8 +67,8 @@ if __name__ == '__main__':
     init_app()
     #
     # vk_module = VK(settings)
-    # print(vk_module.getUsers(186101748, ["bdate", "education", "schools", "home_town"]))
+    # print(vk_module.get_users([135707636, 89767667], ["bdate", "education", "schools", "home_town"]))
     # inst_module = INSTAGRAM(settings)
     # print(inst_module.get_followers(1458924954))
     analysis = Analysis(settings)
-    print(analysis.vk_get_age(186101748))
+    print(analysis.vk_get_age(89767667))

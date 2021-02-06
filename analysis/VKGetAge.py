@@ -23,7 +23,7 @@ class VKGetAge(BaseAnalysisTask):
 
     def validate(self, user_id):
         try:
-            info = self.vk_module.get_users(user_id)
+            info = self.vk_module.get_users([user_id])
         except:
             raise AnalysisTaskArgumentsError(f"Профиль пользователя не действителен!")
         if type(info) is not dict or info.get("deactivated"):
@@ -145,7 +145,7 @@ class VKGetAge(BaseAnalysisTask):
             Simple method to determine age of user
             return: age or error or None
         """
-        info = self.vk_module.get_users(user_id, ["bdate", "education", "schools", "home_town"])
+        info = self.vk_module.get_users([user_id], ["bdate", "education", "schools", "home_town"])
         #указана дата в профиле
         if "bdate" in info["result"][0]:
             bday = tuple(map(int, info["result"][0]["bdate"].split('.')[::-1]))
@@ -198,14 +198,14 @@ class VKGetAge(BaseAnalysisTask):
         age_simple = self._simple_det_age_of_vk_user(user_id)
         if age_simple is not None:
             return age_simple
-        user_info = self.vk_module.get_users(user_id, ["education", "schools", "home_town"])["result"][0]
+        user_info = self.vk_module.get_users([user_id], ["education", "schools", "home_town"])["result"][0]
         user_general_info = self._process_info(user_info)
         friends = self.vk_module.get_friends(user_id)["result"]
         log.debug(f"Функция get_friends вернула: {friends}")
         friends_info = []
-        for friend in friends:
-            friend_info = self.vk_module.get_users(friend, ["bdate", "education", "schools", "home_town"])["result"][0]
-            friend_general_info = self._process_info(friend_info)
+        frs_info = self.vk_module.get_users(friends, ["bdate", "education", "schools", "home_town"])["result"]
+        for friend in frs_info:
+            friend_general_info = self._process_info(friend)
             friends_info.append(friend_general_info)
         log.debug(f"friends_info: {friends_info}")
         log.debug(f"user_general_info: {user_general_info}")

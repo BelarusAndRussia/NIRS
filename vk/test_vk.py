@@ -24,8 +24,8 @@ def test_initmodule(setting):
     vk_module = VK(settings)
 
 def test_get_users():
-    f_name = vk_module.get_users(DUROV_ID)['result'][0]['first_name']
-    l_name = vk_module.get_users(DUROV_ID)['result'][0]['last_name']
+    f_name = vk_module.get_users([DUROV_ID])['result'][0]['first_name']
+    l_name = vk_module.get_users([DUROV_ID])['result'][0]['last_name']
     assert f_name == 'Павел'
     assert l_name == 'Дуров'
 

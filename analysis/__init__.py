@@ -1,5 +1,4 @@
-__version__ = "1.0.0"
+__version__ = "2.1.0"
 
-from .BaseAnalysisTask import BaseAnalysisTask
-from .VKGetAge import VKGetAge
 from .API import *
+from .BaseAnalysisTask import BaseAnalysisTask

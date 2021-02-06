@@ -164,28 +164,28 @@ class VK:
             profiles_per_iteration = max_friends
         else:
             profiles_per_iteration = 1000
-        code = f'var profiles_per_iteration = {profiles_per_iteration};' \
-               f'var user_id = {user_id};' \
-               f'var max_friends = {max_friends};' \
-               'var cur_offset = 0;' \
-               'var res = [];' \
-               'var cur_iter = 0;' \
-               'while (cur_iter < 25)' \
+        code = f'var profiles_per_iteration={profiles_per_iteration};' \
+               f'var user_id={user_id};' \
+               f'var max_friends={max_friends};' \
+               'var cur_offset=0;' \
+               'var res=[];' \
+               'var cur_iter=0;' \
+               'while(cur_iter<25)' \
                '{' \
-               '   if (cur_offset >= max_friends)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   var buff = API.friends.get({"user_id": user_id,' \
-               '                                "offset": cur_offset,' \
-               '                                "count": profiles_per_iteration});' \
-               '   if (buff.items.length < 1)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   res = res + [buff];' \
-               '   cur_iter = cur_iter + 1;' \
-               '   cur_offset = cur_offset + profiles_per_iteration;' \
+               'if (cur_offset>=max_friends)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'var buff=API.friends.get({"user_id":user_id,' \
+               '"offset":cur_offset,' \
+               '"count":profiles_per_iteration});' \
+               'if(buff.items.length<1)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'res=res+[buff];' \
+               'cur_iter=cur_iter+1;' \
+               'cur_offset=cur_offset+profiles_per_iteration;' \
                '}' \
                'return res;'
         try:
@@ -243,28 +243,28 @@ class VK:
             profiles_per_iteration = max_followers
         else:
             profiles_per_iteration = 1000
-        code = f'var profiles_per_iteration = {profiles_per_iteration};' \
-               f'var user_id = {user_id};' \
-               f'var max_followers = {max_followers};' \
-               'var cur_offset = 0;' \
-               'var res = [];' \
-               'var cur_iter = 0;' \
-               'while (cur_iter < 25)' \
+        code = f'var profiles_per_iteration={profiles_per_iteration};' \
+               f'var user_id={user_id};' \
+               f'var max_followers={max_followers};' \
+               'var cur_offset=0;' \
+               'var res=[];' \
+               'var cur_iter=0;' \
+               'while(cur_iter<25)' \
                '{' \
-               '   if (cur_offset >= max_followers)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   var buff = API.users.getFollowers({"user_id": user_id,' \
-               '                                      "offset": cur_offset,' \
-               '                                      "count": profiles_per_iteration});' \
-               '   if (buff.items.length < 1)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   res = res + [buff];' \
-               '   cur_iter = cur_iter + 1;' \
-               '   cur_offset = cur_offset + profiles_per_iteration;' \
+               'if (cur_offset>=max_followers)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'var buff=API.users.getFollowers({"user_id":user_id,' \
+               '"offset":cur_offset,' \
+               '"count":profiles_per_iteration});' \
+               'if(buff.items.length<1)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'res=res+[buff];' \
+               'cur_iter=cur_iter+1;' \
+               'cur_offset=cur_offset+profiles_per_iteration;' \
                '}' \
                'return res;'
         try:
@@ -325,44 +325,48 @@ class VK:
             fr_deep["status"] = "fail"
         return fr_deep
 
-    def get_users(self, user_id: int, fields: list=[]):
+    def get_users(self, uids: list, fields: list=[]):
         """
-        Collect information of user
-        Arguments:
-            user_id: int – id of user
-            fields: list - interested fields
-        Return:
-            result: dict – {result: [{"field": info, ...}], error: {id: text_error, ...}, status: success or fail}
+            Collect information of users
+            Arguments:
+                uids: list – id of user
+                fields: list - interested fields
+            Return:
+                result: dict – {result: [{"field": info, ...}], error: {id: text_error, ...}, status: success or fail}
         """
-        fields_ = ""
-        for _ in fields:
-            fields_ += (_ + ",")
-        fieldsForReq = fields_[:-1]
-        try:
-            res_info = self._vkapi_request(
-                "users.get",
-                {
-                    "user_id": user_id,
-                    "fields": fieldsForReq,
-                })
-        except VkApiProfileIsPrivate:
-            return self.result("fail", None, [{user_id: "30: This profile is private"}])
-        except VkApiToManyExecute:
-            return self.result("fail", None, [{user_id: "6: Too many executes"}])
-        except VkApiTooManySameExecute:
-            return self.result("fail", None, [{user_id: "9: Too many same actions"}])
-        except VkApiDeletedUser:
-            return self.result("fail", None, [{user_id: "18: Deleted user"}])
-        except VkApiBannedUser:
-            return self.result("fail", None, [{user_id: "37: Banned user"}])
-        except VkApiLimitReached:
-            return self.result("fail", None, [{user_id: "29: Limit rate"}])
-        except:
-            return self.result("fail", None, [{user_id: "Unknown error"}])
-        if "req_err" in res_info:
-            return self.result("fail", None, [{user_id: res_info}])
-        log.debug(f'user_id: {user_id}; fields: {fields} -> OK')
-        return self.result("success", res_info["response"], None)
+        uids_in_one_execute = 9 * 1000
+        info = list()
+        for start_index in range(0, len(uids), uids_in_one_execute):
+            cur_uids = uids[start_index:start_index + uids_in_one_execute]
+            fieldsForReq = ",".join(fields)
+            code = f'var uids={cur_uids};' \
+                   f'var fields_="{fieldsForReq}";' \
+                   'var cur_pos=0;' \
+                   'var info=[];' \
+                   'while(cur_pos<uids.length)' \
+                   '{' \
+                   'var buff=API.users.get({"user_ids":uids.slice(cur_pos,cur_pos+1000),' \
+                   '"fields":fields_});' \
+                   'info=info+[buff];' \
+                   'cur_pos=cur_pos+1000;' \
+                   '}' \
+                   'return info;'
+            try:
+                tmp_info = self._vkapi_request("execute", {"code": code})
+            except VkApiToManyExecute:
+                return self.result("fail", None, ["6: Too many executes"])
+            except VkApiTooManySameExecute:
+                return self.result("fail", None, ["9: Too many same actions"])
+            except VkApiLimitReached:
+                return self.result("fail", None, ["29: Limit rate"])
+            except:
+                return self.result("fail", None, ["Unknown error"])
+            if "req_err" in tmp_info:
+                return self.result("fail", None, [tmp_info])
+            for part_info in tmp_info["response"]:
+                info += part_info
+        log.debug(f'user_id: {uids}; fields: {fields} -> OK')
+        return self.result("success", info, None)
 
     def get_inst_of_user(self, user_id: int):
         """
@@ -373,7 +377,7 @@ class VK:
             result: dict – {result: [{[user_id]: "instagram login"}], error: {id: text_error}, status: success or fail}
         """
         inst_log = {}
-        link = self.get_users(user_id, ["connections", "status", "site"])
+        link = self.get_users([user_id], ["connections", "status", "site"])
         if "instagram" in link['result'][0]:
             inst_log[user_id] = link['result'][0]["instagram"]
         if "status" in link['result'][0]:
@@ -440,28 +444,28 @@ class VK:
             groups_per_iteration = max_groups
         else:
             groups_per_iteration = 1000
-        code = f'var groups_per_iteration = {groups_per_iteration};' \
-               f'var user_id = {user_id};' \
-               f'var max_groups = {max_groups};' \
-               'var cur_offset = 0;' \
-               'var res = [];' \
-               'var cur_iter = 0;' \
-               'while (cur_iter < 25)' \
+        code = f'var groups_per_iteration={groups_per_iteration};' \
+               f'var user_id={user_id};' \
+               f'var max_groups={max_groups};' \
+               'var cur_offset=0;' \
+               'var res=[];' \
+               'var cur_iter=0;' \
+               'while(cur_iter<25)' \
                '{' \
-               '   if (cur_offset >= max_groups)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   var buff = API.groups.get({"user_id": user_id,' \
-               '                              "offset": cur_offset,' \
-               '                              "count": groups_per_iteration});' \
-               '   if (buff.items.length < 1)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   res = res + [buff];' \
-               '   cur_iter = cur_iter + 1;' \
-               '   cur_offset = cur_offset + groups_per_iteration;' \
+               'if (cur_offset>=max_groups)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'var buff=API.groups.get({"user_id":user_id,' \
+               '"offset":cur_offset,' \
+               '"count":groups_per_iteration});' \
+               'if(buff.items.length<1)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'res=res+[buff];' \
+               'cur_iter=cur_iter+1;' \
+               'cur_offset=cur_offset+groups_per_iteration;' \
                '}' \
                'return res;'
         try:
@@ -514,28 +518,28 @@ class VK:
             members_per_iteration = max_members
         else:
             members_per_iteration = 1000
-        code = f'var members_per_iteration = {members_per_iteration};' \
-               f'var group_id = {group_id};' \
-               f'var max_members = {max_members};' \
-               'var cur_offset = 0;' \
-               'var res = [];' \
-               'var cur_iter = 0;' \
-               'while (cur_iter < 25)' \
+        code = f'var members_per_iteration={members_per_iteration};' \
+               f'var group_id={group_id};' \
+               f'var max_members={max_members};' \
+               'var cur_offset=0;' \
+               'var res=[];' \
+               'var cur_iter=0;' \
+               'while(cur_iter<25)' \
                '{' \
-               '   if (cur_offset >= max_members)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   var buff = API.groups.getMembers({"group_id": group_id,' \
-               '                                     "offset": cur_offset,' \
-               '                                     "count": members_per_iteration});' \
-               '   if (buff.items.length < 1)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   res = res + [buff];' \
-               '   cur_iter = cur_iter + 1;' \
-               '   cur_offset = cur_offset + members_per_iteration;' \
+               'if(cur_offset>=max_members)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'var buff=API.groups.getMembers({"group_id":group_id,' \
+               '"offset":cur_offset,' \
+               '"count":members_per_iteration});' \
+               'if(buff.items.length<1)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'res=res+[buff];' \
+               'cur_iter=cur_iter+1;' \
+               'cur_offset=cur_offset+members_per_iteration;' \
                '}' \
                'return res;'
         try:
@@ -590,30 +594,30 @@ class VK:
             photos_per_iteration = max_photos
         else:
             photos_per_iteration = 200
-        code = f'var photos_per_iteration = {photos_per_iteration};' \
-               f'var owner_id = {owner_id};' \
-               f'var max_photos = {max_photos};' \
-               'var cur_offset = 0;' \
-               'var res = [];' \
-               'var cur_iter = 0;' \
-               f'var extended = {extended};' \
-               'while (cur_iter < 25)' \
+        code = f'var photos_per_iteration={photos_per_iteration};' \
+               f'var owner_id={owner_id};' \
+               f'var max_photos={max_photos};' \
+               'var cur_offset=0;' \
+               'var res=[];' \
+               'var cur_iter=0;' \
+               f'var extended={extended};' \
+               'while(cur_iter<25)' \
                '{' \
-               '   if (cur_offset >= max_photos)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   var buff = API.photos.getAll({"owner_id": owner_id,' \
-               '                                "offset": cur_offset,' \
-               '                                "extended": extended,' \
-               '                                "count": photos_per_iteration});' \
-               '   if (buff.items.length < 1)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   res = res + [buff];' \
-               '   cur_iter = cur_iter + 1;' \
-               '   cur_offset = cur_offset + photos_per_iteration;' \
+               'if(cur_offset>=max_photos)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'var buff=API.photos.getAll({"owner_id":owner_id,' \
+               '"offset":cur_offset,' \
+               '"extended":extended,' \
+               '"count":photos_per_iteration});' \
+               'if(buff.items.length<1)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'res=res+[buff];' \
+               'cur_iter=cur_iter+1;' \
+               'cur_offset=cur_offset+photos_per_iteration;' \
                '}' \
                'return res;'
         try:
@@ -666,30 +670,30 @@ class VK:
             videos_per_iteration = max_videos
         else:
             videos_per_iteration = 200
-        code = f'var videos_per_iteration = {videos_per_iteration};' \
-               f'var owner_id = {owner_id};' \
-               f'var max_videos = {max_videos};' \
-               'var cur_offset = 0;' \
-               'var res = [];' \
-               'var cur_iter = 0;' \
-               f'var extended = {extended};' \
-               'while (cur_iter < 25)' \
+        code = f'var videos_per_iteration={videos_per_iteration};' \
+               f'var owner_id={owner_id};' \
+               f'var max_videos={max_videos};' \
+               'var cur_offset=0;' \
+               'var res=[];' \
+               'var cur_iter=0;' \
+               f'var extended={extended};' \
+               'while(cur_iter<25)' \
                '{' \
-               '   if (cur_offset >= max_videos)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   var buff = API.video.get({"owner_id": owner_id,' \
-               '                             "offset": cur_offset,' \
-               '                             "extended": extended,' \
-               '                             "count": videos_per_iteration});' \
-               '   if (buff.items.length < 1)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   res = res + [buff];' \
-               '   cur_iter = cur_iter + 1;' \
-               '   cur_offset = cur_offset + videos_per_iteration;' \
+               'if(cur_offset>=max_videos)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'var buff=API.video.get({"owner_id":owner_id,' \
+               '"offset":cur_offset,' \
+               '"extended":extended,' \
+               '"count":videos_per_iteration});' \
+               'if (buff.items.length < 1)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'res=res+[buff];' \
+               'cur_iter=cur_iter+1;' \
+               'cur_offset=cur_offset+videos_per_iteration;' \
                '}' \
                'return res;'
         try:
@@ -744,30 +748,30 @@ class VK:
             notes_per_iteration = max_notes
         else:
             notes_per_iteration = 100
-        code = f'var notes_per_iteration = {notes_per_iteration};' \
-               f'var owner_id = {owner_id};' \
-               f'var max_notes = {max_notes};' \
-               'var cur_offset = 0;' \
-               'var res = [];' \
-               'var cur_iter = 0;' \
-               f'var extended = {extended};' \
-               'while (cur_iter < 25)' \
+        code = f'var notes_per_iteration={notes_per_iteration};' \
+               f'var owner_id={owner_id};' \
+               f'var max_notes={max_notes};' \
+               'var cur_offset=0;' \
+               'var res=[];' \
+               'var cur_iter=0;' \
+               f'var extended={extended};' \
+               'while(cur_iter<25)' \
                '{' \
-               '   if (cur_offset >= max_notes)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   var buff = API.wall.get({"owner_id": owner_id,' \
-               '                            "offset": cur_offset,' \
-               '                            "extended": extended,' \
-               '                            "count": notes_per_iteration});' \
-               '   if (buff.items.length < 1)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   res = res + [buff];' \
-               '   cur_iter = cur_iter + 1;' \
-               '   cur_offset = cur_offset + notes_per_iteration;' \
+               'if(cur_offset>=max_notes)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'var buff=API.wall.get({"owner_id":owner_id,' \
+               '"offset":cur_offset,' \
+               '"extended":extended,' \
+               '"count":notes_per_iteration});' \
+               'if(buff.items.length<1)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'res=res+[buff];' \
+               'cur_iter=cur_iter+1;' \
+               'cur_offset=cur_offset+notes_per_iteration;' \
                '}' \
                'return res;'
         try:
@@ -824,36 +828,36 @@ class VK:
             likes_per_iteration = max_likes
         else:
             likes_per_iteration = 1000
-        code = f'var likes_per_iteration = {likes_per_iteration};' \
-               f'var owner_id = {owner_id};' \
-               f'var type = "{type}";' \
-               f'var item_id = {item_id};' \
-               f'var friends_only = {friends_only};' \
-               f'var max_likes = {max_likes};' \
-               'var cur_offset = 0;' \
-               'var res = [];' \
-               'var cur_iter = 0;' \
-               f'var extended = {extended};' \
-               'while (cur_iter < 25)' \
+        code = f'var likes_per_iteration={likes_per_iteration};' \
+               f'var owner_id={owner_id};' \
+               f'var type="{type}";' \
+               f'var item_id={item_id};' \
+               f'var friends_only={friends_only};' \
+               f'var max_likes={max_likes};' \
+               'var cur_offset=0;' \
+               'var res=[];' \
+               'var cur_iter=0;' \
+               f'var extended={extended};' \
+               'while(cur_iter<25)' \
                '{' \
-               '   if (cur_offset >= max_likes)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   var buff = API.likes.getList({"owner_id": owner_id,' \
-               '                                 "offset": cur_offset,' \
-               '                                 "type": type,' \
-               '                                 "item_id": item_id,' \
-               '                                 "friends_only": friends_only,' \
-               '                                 "extended": extended,' \
-               '                                 "count": likes_per_iteration});' \
-               '   if (buff.items.length < 1)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   res = res + [buff];' \
-               '   cur_iter = cur_iter + 1;' \
-               '   cur_offset = cur_offset + likes_per_iteration;' \
+               'if(cur_offset>=max_likes)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'var buff=API.likes.getList({"owner_id":owner_id,' \
+               '"offset":cur_offset,' \
+               '"type":type,' \
+               '"item_id":item_id,' \
+               '"friends_only":friends_only,' \
+               '"extended":extended,' \
+               '"count":likes_per_iteration});' \
+               'if(buff.items.length<1)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'res=res+[buff];' \
+               'cur_iter=cur_iter+1;' \
+               'cur_offset=cur_offset+likes_per_iteration;' \
                '}' \
                'return res;'
         try:
@@ -911,33 +915,33 @@ class VK:
             comments_per_iteration = max_comments
         else:
             comments_per_iteration = 100
-        code = f'var comments_per_iteration = {comments_per_iteration};' \
-               f'var owner_id = {owner_id};' \
-               f'var post_id = {post_id};' \
-               f'var max_comments = {max_comments};' \
-               'var cur_offset = 0;' \
-               'var res = [];' \
-               'var cur_iter = 0;' \
-               f'var extended = {extended};' \
-               'while (cur_iter < 25)' \
+        code = f'var comments_per_iteration={comments_per_iteration};' \
+               f'var owner_id={owner_id};' \
+               f'var post_id={post_id};' \
+               f'var max_comments={max_comments};' \
+               'var cur_offset=0;' \
+               'var res=[];' \
+               'var cur_iter=0;' \
+               f'var extended={extended};' \
+               'while(cur_iter<25)' \
                '{' \
-               '   if (cur_offset >= max_comments)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   var buff = API.wall.getComments({"owner_id": owner_id,' \
-               '                                    "post_id": post_id,' \
-               '                                    "need_likes": 1,' \
-               '                                    "count": comments_per_iteration,' \
-               '                                    "offset": cur_offset,' \
-               '                                    "extended": extended});' \
-               '   if (buff.items.length < 1)' \
-               '   {' \
-               '       return res;' \
-               '   }' \
-               '   res = res + [buff];' \
-               '   cur_iter = cur_iter + 1;' \
-               '   cur_offset = cur_offset + comments_per_iteration;' \
+               'if(cur_offset>=max_comments)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'var buff = API.wall.getComments({"owner_id":owner_id,' \
+               '"post_id":post_id,' \
+               '"need_likes":1,' \
+               '"count":comments_per_iteration,' \
+               '"offset":cur_offset,' \
+               '"extended":extended});' \
+               'if(buff.items.length<1)' \
+               '{' \
+               'return res;' \
+               '}' \
+               'res=res+[buff];' \
+               'cur_iter=cur_iter+1;' \
+               'cur_offset=cur_offset+comments_per_iteration;' \
                '}' \
                'return res;'
         try:

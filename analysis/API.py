@@ -1,18 +1,16 @@
-import inspect
+import os
 import re
-import sys
 #
 from .BaseAnalysisTask import BaseAnalysisTask
-from .VKGetAge import VKGetAge
+from .utils import walk_modules, get_classes
 
 
 class Analysis:
     """ Класс для проведения аналитики """
 
     def __init__(self, settings):
-        for name, obj in inspect.getmembers(
-                sys.modules[__name__], lambda obj: inspect.isclass(obj) and issubclass(obj, BaseAnalysisTask)
-        ):
+        classes = get_classes(walk_modules(os.path.dirname(os.path.abspath(__file__)).split("\\")[-1]))
+        for name, obj in classes:
             if name != BaseAnalysisTask.__name__:
                 task = obj(settings)
                 setattr(self, self._translate_method(name), task.execute)
