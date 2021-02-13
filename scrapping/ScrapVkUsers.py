@@ -1,10 +1,8 @@
 import datetime
-import json
 import logging
 from math import floor
 #
 from scrapping.BaseScrapper import BaseScrapper
-from settings import settings
 
 log = logging.getLogger(__name__)
 
@@ -22,10 +20,12 @@ class ScrapVkUsers(BaseScrapper):
         super().__init__(settings)
 
     def _iterator(self, left_side, right_side):
-        for id in range(left_side, right_side):
-            ans = self.vk_module.get_users([id], ["bdate", "schools"])
+        for id in range(left_side, right_side + 1, 100):
+            users = [id + i for i in range(100)]
+            ans = self.vk_module.get_users(users, ["bdate", "schools"])
             if not ans.get("error"):
-                yield (id, ans["result"][0])
+                for x in ans["result"]:
+                    yield (x["id"], x)
 
     def _filter(self, data):
         for id, info in data:
@@ -56,7 +56,7 @@ class ScrapVkUsers(BaseScrapper):
                             yield (id, age)
                         else:
                             yield (id, None)
-                    if info["schools"][-1].get("year_graduated"):
+                    elif info["schools"][-1].get("year_graduated"):
                         age = self.TODAY_DATE.year - info["schools"][-1][
                             "year_graduated"] + self.AGE_WENT_FROM_SCHOOL
                         log.debug(f"Возраст пользователя {id} равен {age}")

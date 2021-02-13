@@ -74,10 +74,10 @@ if __name__ == '__main__':
     # print(inst_module.get_followers(1458924954))
     # analysis = Analysis(settings)
     # print(analysis.vk_get_age(89767667))
-    # scrap = ScrapVkUsers(settings)
-    # res = []
-    # for id, age in scrap.execute(1, 100000):
-    #     if age:
-    #         res.append({id: age})
-    # with open("data_file.json", "a") as write_file:
-    #     json.dump(res, write_file, indent=4)
+    scrap = ScrapVkUsers(settings)
+    res = []
+    for id, age in scrap.execute(1, 1000):
+        if age:
+            res.append({id: age})
+    with open("data_file.json", "a") as write_file:
+        json.dump(res, write_file, indent=4)
