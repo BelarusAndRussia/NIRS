@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging.handlers
 #
 import os
@@ -14,6 +15,7 @@ sys.path.insert(0, os.path.join(MAIN_DIR, 'analysis/'))
 from settings import settings
 from vk import VK
 from analysis import Analysis
+from scrapping import ScrapVkUsers
 
 __VERSION__ = '0.1.1'
 
@@ -66,9 +68,16 @@ def init_app():
 if __name__ == '__main__':
     init_app()
     #
-    # vk_module = VK(settings)
+    vk_module = VK(settings)
     # print(vk_module.get_users([135707636, 89767667], ["bdate", "education", "schools", "home_town"]))
     # inst_module = INSTAGRAM(settings)
     # print(inst_module.get_followers(1458924954))
-    analysis = Analysis(settings)
-    print(analysis.vk_get_age(89767667))
+    # analysis = Analysis(settings)
+    # print(analysis.vk_get_age(89767667))
+    # scrap = ScrapVkUsers(settings)
+    # res = []
+    # for id, age in scrap.execute(1, 100000):
+    #     if age:
+    #         res.append({id: age})
+    # with open("data_file.json", "a") as write_file:
+    #     json.dump(res, write_file, indent=4)
