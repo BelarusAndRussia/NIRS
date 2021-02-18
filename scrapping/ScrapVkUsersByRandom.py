@@ -65,7 +65,7 @@ class ScrapVkUsersByRandom(BaseScrapper):
                                 info["schools"][-1]["year_to"] - \
                                 info["schools"][0]["year_from"] >= self.MIN_NUM_OF_CLASSES:
                             log.debug(f"Возраст по дате окончания школы пользователя {id} равен {age}")
-                            res["date_from_school"] = info["schools"][0]["year_from"]
+                            res["date_from_school"] = info["schools"][0]["year_to"]
                     elif info["schools"][-1].get("year_graduated"):
                         age = self.TODAY_DATE.year - info["schools"][-1][
                             "year_graduated"] + self.AGE_WENT_FROM_SCHOOL

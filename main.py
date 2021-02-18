@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging.handlers
+import pandas as pd
 #
 import os
 import sys
@@ -72,19 +73,20 @@ if __name__ == '__main__':
     # print(vk_module.get_users([135707636, 89767667], ["bdate", "education", "schools", "home_town"]))
     # inst_module = INSTAGRAM(settings)
     # print(inst_module.get_followers(1458924954))
+
     # analysis = Analysis(settings)
-    # print(analysis.vk_get_age(89767667))
+    # print(analysis.learning_regression("date.json"))
 
-    # scrap = Scrapper(settings)
-    # res = []
-    # for buff in scrap.scrap_vk_users_by_random():
-    #     if buff["bday"] and (buff["date_from_school"] or buff["date_from_university"]):
-    #         res.append(buff)
-    # with open("info_date_random.json", "a") as write_file:
-    #     json.dump(res, write_file, indent=4)
+    scrap = Scrapper(settings)
+    res = []
+    for buff in scrap.scrap_vk_users_by_id(1, 500000):
+        if buff["bday"] and (buff["date_from_school"] or buff["date_from_university"]):
+            res.append(buff)
+    with open("info_date_by_id.json", "a") as write_file:
+        json.dump(res, write_file, indent=4)
 
-    res = json.load(open("info_date.json", "r"))
-    print(len(res))
+
+
 
 
 
