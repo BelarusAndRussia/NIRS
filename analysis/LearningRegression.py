@@ -1,8 +1,11 @@
 import pandas as pd
+import numpy as np
 import logging
 import datetime
 from math import floor
 import matplotlib.pyplot as plt
+from scipy.stats.stats import pearsonr
+from sklearn.linear_model import LinearRegression
 #
 from .BaseAnalysisTask import BaseAnalysisTask
 
@@ -29,9 +32,17 @@ class LearningRegression(BaseAnalysisTask):
         return table
 
     def show_graphic(self, table):
-        table.plot(x="det_age", y="date_from_school")
+        plt.scatter(table["det_age"], table["date_from_school"], s=2)
         plt.show()
+        return pearsonr(table["det_age"], table["date_from_school"])
+
+    def redression(self, x, y):
+        reg = LinearRegression().fit(x, y)
+        return reg.coef_
 
     def execute(self, filename):
         table = self.init_data_frame(filename)
         self.show_graphic(table)
+        x = np.array(table["det_age"])
+        y = np.array(table["date_from_school"])
+        return(self.redression(x.reshape (-1, 1), y.reshape (-1, 1)))

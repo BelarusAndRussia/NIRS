@@ -1,7 +1,6 @@
 import argparse
 import json
 import logging.handlers
-import pandas as pd
 #
 import os
 import sys
@@ -74,16 +73,9 @@ if __name__ == '__main__':
     # inst_module = INSTAGRAM(settings)
     # print(inst_module.get_followers(1458924954))
 
-    # analysis = Analysis(settings)
-    # print(analysis.learning_regression("date.json"))
+    analysis = Analysis(settings)
+    print(analysis.learning_regression("info_date_by_id.json"))
 
-    scrap = Scrapper(settings)
-    res = []
-    for buff in scrap.scrap_vk_users_by_id(1, 500000):
-        if buff["bday"] and (buff["date_from_school"] or buff["date_from_university"]):
-            res.append(buff)
-    with open("info_date_by_id.json", "a") as write_file:
-        json.dump(res, write_file, indent=4)
 
 
 
