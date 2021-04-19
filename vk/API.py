@@ -160,10 +160,10 @@ class VK:
             result: dict – {result: [users_id], error: {id: text_error, ...}, status: success or fail}
         """
         friends = []
-        if max_friends < 1000:
+        if max_friends < 5000:
             profiles_per_iteration = max_friends
         else:
-            profiles_per_iteration = 1000
+            profiles_per_iteration = 5000
         code = f'var profiles_per_iteration={profiles_per_iteration};' \
                f'var user_id={user_id};' \
                f'var max_friends={max_friends};' \
@@ -183,7 +183,7 @@ class VK:
                '{' \
                'return res;' \
                '}' \
-               'res=res+[buff];' \
+               'res=res+buff.items;' \
                'cur_iter=cur_iter+1;' \
                'cur_offset=cur_offset+profiles_per_iteration;' \
                '}' \
@@ -224,12 +224,12 @@ class VK:
             return self.result("fail", None, [{user_id: res_friends}])
         log.debug(f'user_id: {user_id}; ppi: {profiles_per_iteration} -> OK')
         if len(res_friends['response']) != 0:
-            friends += res_friends['response'][0]['items']
+            friends += res_friends['response']
         else:
             friends += res_friends['response']
         return self.result("success", friends, None)
 
-    def get_followers(self, user_id: int, max_followers: int=10000):
+    def get_followers(self, user_id: int, max_followers: int=25000):
         """
         Collect followers of user
         Arguments:
@@ -251,7 +251,7 @@ class VK:
                'var cur_iter=0;' \
                'while(cur_iter<25)' \
                '{' \
-               'if (cur_offset>=max_followers)' \
+               'if(cur_offset>=max_followers)' \
                '{' \
                'return res;' \
                '}' \
@@ -262,7 +262,7 @@ class VK:
                '{' \
                'return res;' \
                '}' \
-               'res=res+[buff];' \
+               'res=res+buff.items;' \
                'cur_iter=cur_iter+1;' \
                'cur_offset=cur_offset+profiles_per_iteration;' \
                '}' \
@@ -295,7 +295,7 @@ class VK:
             return self.result("fail", None, [{user_id: res_followers}])
         log.debug(f'user_id: {user_id}; ppi: {profiles_per_iteration} -> OK')
         if len(res_followers['response']) != 0:
-            followers += res_followers['response'][0]['items']
+            followers += res_followers['response']
         else:
             followers += res_followers['response']
         return self.result("success", followers, None)
@@ -463,7 +463,7 @@ class VK:
                '{' \
                'return res;' \
                '}' \
-               'res=res+[buff];' \
+               'res=res+buff.items;' \
                'cur_iter=cur_iter+1;' \
                'cur_offset=cur_offset+groups_per_iteration;' \
                '}' \
@@ -498,12 +498,12 @@ class VK:
             return self.result("fail", None, [{user_id: res_groups}])
         log.debug(f'user_id: {user_id}; ppi: {groups_per_iteration} -> OK')
         if len(res_groups['response']) != 0:
-            groups += res_groups['response'][0]['items']
+            groups += res_groups['response']
         else:
             groups += res_groups['response']
         return self.result("success", groups, None)
 
-    def get_group_members(self, group_id: int, max_members: int=10000000):
+    def get_group_members(self, group_id: int, max_members: int=100000):
         """
         Collect members of group
         Arguments:
@@ -537,7 +537,7 @@ class VK:
                '{' \
                'return res;' \
                '}' \
-               'res=res+[buff];' \
+               'res=res+buff.items;' \
                'cur_iter=cur_iter+1;' \
                'cur_offset=cur_offset+members_per_iteration;' \
                '}' \
@@ -574,7 +574,7 @@ class VK:
             return self.result("fail", None, [{group_id: res_members}])
         log.debug(f'user_id: {group_id}; ppi: {members_per_iteration} -> OK')
         if len(res_members['response']) != 0:
-            members += res_members['response'][0]['items']
+            members += res_members['response']
         else:
             members += res_members['response']
         return self.result("success", members, None)
@@ -615,7 +615,7 @@ class VK:
                '{' \
                'return res;' \
                '}' \
-               'res=res+[buff];' \
+               'res=res+buff.items;' \
                'cur_iter=cur_iter+1;' \
                'cur_offset=cur_offset+photos_per_iteration;' \
                '}' \
@@ -650,7 +650,7 @@ class VK:
             return self.result("fail", None, [{owner_id: res_photos}])
         log.debug(f'group_id: {owner_id}; ppi: {photos_per_iteration} -> OK')
         if len(res_photos['response']) != 0:
-            photos += res_photos['response'][0]['items']
+            photos += res_photos['response']
         else:
             photos += res_photos['response']
         return self.result("success", photos, None)
@@ -691,7 +691,7 @@ class VK:
                '{' \
                'return res;' \
                '}' \
-               'res=res+[buff];' \
+               'res=res+buff.items;' \
                'cur_iter=cur_iter+1;' \
                'cur_offset=cur_offset+videos_per_iteration;' \
                '}' \
@@ -728,7 +728,7 @@ class VK:
             return self.result("fail", None, [{owner_id: res_videos}])
         log.debug(f'user_id: {owner_id}; ppi: {videos_per_iteration} -> OK')
         if len(res_videos['response']) != 0:
-            videos += res_videos['response'][0]['items']
+            videos += res_videos['response']
         else:
             videos += res_videos['response']
         return self.result("success", videos, None)
@@ -769,7 +769,7 @@ class VK:
                '{' \
                'return res;' \
                '}' \
-               'res=res+[buff];' \
+               'res=res+buff.items;' \
                'cur_iter=cur_iter+1;' \
                'cur_offset=cur_offset+notes_per_iteration;' \
                '}' \
@@ -804,7 +804,7 @@ class VK:
             return self.result("fail", None, [{owner_id: res_notes}])
         log.debug(f'group_id: {owner_id}; ppi: {notes_per_iteration} -> OK')
         if len(res_notes['response']) != 0:
-            notes += res_notes['response'][0]['items']
+            notes += res_notes['response']
         else:
             notes += res_notes['response']
         return self.result("success", notes, None)
@@ -855,7 +855,7 @@ class VK:
                '{' \
                'return res;' \
                '}' \
-               'res=res+[buff];' \
+               'res=res+buff.items;' \
                'cur_iter=cur_iter+1;' \
                'cur_offset=cur_offset+likes_per_iteration;' \
                '}' \
@@ -894,7 +894,7 @@ class VK:
             return self.result("fail", None, [{owner_id: res_likes}])
         log.debug(f'user_id: {owner_id}; ppi: {likes_per_iteration} -> OK')
         if len(res_likes['response']) != 0:
-            likes += res_likes['response'][0]['items']
+            likes += res_likes['response']
         else:
             likes += res_likes['response']
         return self.result("success", likes, None)
@@ -939,7 +939,7 @@ class VK:
                '{' \
                'return res;' \
                '}' \
-               'res=res+[buff];' \
+               'res=res+buff.items;' \
                'cur_iter=cur_iter+1;' \
                'cur_offset=cur_offset+comments_per_iteration;' \
                '}' \
@@ -980,7 +980,7 @@ class VK:
             return self.result("fail", None, [{owner_id: res_comments}])
         log.debug(f'user_id: {owner_id}; ppi: {comments_per_iteration} -> OK')
         if len(res_comments['response']) != 0:
-            comments += res_comments['response'][0]['items']
+            comments += res_comments['response']
         else:
             comments += res_comments['response']
         return self.result("success", comments, None)

@@ -1,10 +1,14 @@
 import argparse
+import datetime
 import json
 import logging.handlers
+import time
 #
 import os
 import sys
 #
+from math import floor
+
 MAIN_DIR = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(MAIN_DIR, 'irequests/'))
 sys.path.insert(0, os.path.join(MAIN_DIR, 'settings/'))
@@ -68,21 +72,7 @@ def init_app():
 if __name__ == '__main__':
     init_app()
     #
-    # vk_module = VK(settings)
-    # print(vk_module.get_users([135707636, 89767667], ["bdate", "education", "schools", "home_town"]))
-    # inst_module = INSTAGRAM(settings)
-    # print(inst_module.get_followers(1458924954))
-
-    analysis = Analysis(settings)
-    print(analysis.learning_regression("info_date_by_id.json"))
-
-
-
-
-
-
-
-
-
-
-
+    vk_module = VK(settings)
+    # with open("cupandcup_members.json", "w") as wf:
+    #     json.dump(vk_module.get_group_members(-126210623)["result"], wf, indent=4)
+    print(len(vk_module.get_friends(186101748)["result"]))

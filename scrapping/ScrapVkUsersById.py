@@ -23,23 +23,21 @@ class ScrapVkUsersById(BaseScrapper):
     def _iterator(self, left_side, right_side):
         for id in range(left_side, right_side + 1, 500):
             users = [id + i for i in range(500)]
-            ans = self.vk_module.get_users(users, ["bdate", "schools", "education"])
+            ans = self.vk_module.get_users(users, ["bdate"])
             if not ans.get("error"):
                 for x in ans["result"]:
                     yield (x["id"], x)
 
     def _filter(self, data):
         for id, info in data:
-            if info.get("bdate") and (info.get("schools") or info.get("education")):
+            if info.get("bdate"):
                 yield (id, info)
 
     def _selector(self, data):
         for id, info in data:
             res = {
                 "id": id,
-                "bday": None,
-                "date_from_school": None,
-                "date_from_university": None
+                "bday": None
             }
             try:
                 bday = tuple(map(int, info["bdate"].split('.')[::-1]))
@@ -49,29 +47,7 @@ class ScrapVkUsersById(BaseScrapper):
                     if self.LEFT_SIDE_OF_AGE <= age and age <= self.RIGHT_SIDE_OF_AGE:
                         log.debug(f"Возраст по дате рождения пользователя {id} равен {age}")
                         res["bday"] = info["bdate"]
-                # указан год выпуска со школы
-                if info["schools"]:
-                    if info["schools"][0].get("year_from") and info["schools"][-1].get("year_to"):
-                        age = self.TODAY_DATE.year - info["schools"][0]["year_from"] + self.AGE_GO_TO_SCHOOL
-                        # исключаем случай, когда указана из нескольких школ только одна последняя
-                        if self.LEFT_SIDE_OF_AGE <= age and age <= self.RIGHT_SIDE_OF_AGE and \
-                                info["schools"][-1]["year_to"] - \
-                                info["schools"][0]["year_from"] >= self.MIN_NUM_OF_CLASSES:
-                            log.debug(f"Возраст по дате окончания школы пользователя {id} равен {age}")
-                            res["date_from_school"] = info["schools"][0]["year_to"]
-                    elif info["schools"][-1].get("year_graduated"):
-                        age = self.TODAY_DATE.year - info["schools"][-1][
-                            "year_graduated"] + self.AGE_WENT_FROM_SCHOOL
-                        if self.LEFT_SIDE_OF_AGE <= age and age <= self.RIGHT_SIDE_OF_AGE:
-                            log.debug(f"Возраст по дате окончания школы пользователя {id} равен {age}")
-                            res["date_from_school"] = info["schools"][-1]["year_graduated"]
-                # указан год выпуска из универа
-                if info.get("graduation"):
-                    age = self.TODAY_DATE.year - info["graduation"] + self.AGE_WENT_FROM_UNIVERSITY
-                    if self.LEFT_SIDE_OF_AGE <= age and age <= self.RIGHT_SIDE_OF_AGE:
-                        log.debug(f"Возраст по дате окончания универа пользователя {id} равен {age}")
-                        res["date_from_university"] = info["graduation"]
-                yield res
+                        yield res
             except:
                 continue
 

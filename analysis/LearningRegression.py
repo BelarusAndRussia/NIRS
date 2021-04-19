@@ -38,11 +38,22 @@ class LearningRegression(BaseAnalysisTask):
 
     def redression(self, x, y):
         reg = LinearRegression().fit(x, y)
-        return reg.coef_
+        return reg.predict(np.array([2015]).reshape (-1, 1))
+
+    def prob_values(self, table):
+        diff = []
+        y_school = table["date_from_school"]
+        y_bd = table["bday"]
+        res = zip(y_school, y_bd)
+        for a in res:
+            diff.append(a[0] - int(a[1].split(".")[-1]))
+        res = sorted(diff)
+        return res
 
     def execute(self, filename):
         table = self.init_data_frame(filename)
-        self.show_graphic(table)
-        x = np.array(table["det_age"])
-        y = np.array(table["date_from_school"])
-        return(self.redression(x.reshape (-1, 1), y.reshape (-1, 1)))
+        #self.show_graphic(table)
+        #x = np.array(table["date_from_school"]).reshape(-1, 1)
+        #y = np.array(table["det_age"]).reshape(-1, 1)
+        #predict_age = self.redression(x, y)
+        return(self.prob_values(table))
