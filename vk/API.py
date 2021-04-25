@@ -503,7 +503,7 @@ class VK:
             groups += res_groups['response']
         return self.result("success", groups, None)
 
-    def get_group_members(self, group_id: int, max_members: int=100000):
+    def get_group_members(self, group_id: int, first_offset: int = 0, max_members: int=1000000):
         """
         Collect members of group
         Arguments:
@@ -512,6 +512,7 @@ class VK:
         Return:
             result: dict – {result: [members_ids], error: {id: text_error, ...}, status: success or fail}
         """
+        cur_offset = first_offset
         group_id = -group_id
         members = []
         if max_members < 1000:
@@ -521,7 +522,7 @@ class VK:
         code = f'var members_per_iteration={members_per_iteration};' \
                f'var group_id={group_id};' \
                f'var max_members={max_members};' \
-               'var cur_offset=0;' \
+               f'var cur_offset={cur_offset};' \
                'var res=[];' \
                'var cur_iter=0;' \
                'while(cur_iter<25)' \

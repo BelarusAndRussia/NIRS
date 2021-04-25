@@ -72,7 +72,22 @@ def init_app():
 if __name__ == '__main__':
     init_app()
     #
-    vk_module = VK(settings)
-    # with open("cupandcup_members.json", "w") as wf:
-    #     json.dump(vk_module.get_group_members(-126210623)["result"], wf, indent=4)
-    print(len(vk_module.get_friends(186101748)["result"]))
+    #vk_module = VK(settings)
+    analysis = Analysis(settings)
+    print(analysis.vk_get_age(186101748))
+
+    # fsb_members = vk_module.get_group_members(-56274312)["result"]
+    # fsb_members_friends = []
+    # for member in fsb_members:
+    #     buff_friends = []
+    #     mem_friends = vk_module.get_friends(member)["result"]
+    #     if mem_friends:
+    #         for mem_fr in mem_friends:
+    #             if mem_fr in fsb_members:
+    #                 buff_friends.append(mem_fr)
+    #     fsb_members_friends.append({member: buff_friends})
+    # with open("fsb_friends.json", "w") as wf:
+    #     json.dump(fsb_members_friends, wf)
+
+
+
