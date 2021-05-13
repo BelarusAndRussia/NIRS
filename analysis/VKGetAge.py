@@ -3,6 +3,7 @@ import logging
 import datetime
 from math import floor
 import statistics
+from scipy import stats as s
 #
 from .BaseAnalysisTask import BaseAnalysisTask
 from.exeptions import *
@@ -16,14 +17,19 @@ class VKGetAge(BaseAnalysisTask):
         self.TODAY_DATE = datetime.datetime.today()
         self.AGE_GO_TO_SCHOOL = 7
         self.AGE_WENT_FROM_SCHOOL = 17
-        self.AGE_WENT_FROM_UNIVERSITY = 22
         self.MIN_NUM_OF_CLASSES = 8
         self.LEFT_SIDE_OF_AGE = 14
         self.RIGHT_SIDE_OF_AGE = 70
-        self.mean_coef = 0.35642083
-        self.median_coef = 0.23215484
-        self.std_coef = -0.06410665
-        self.b = 15.46433325356896
+        self.mean_coef = 0.31131345
+        self.median_coef = 0.23423586
+        self.mode_coef = -0.00322799
+        self.std_coef = 0.56824139
+        self.max_coef = -0.16115227
+        self.min_coef = 0.06115426
+        self.b_2 = 21.175922265453494
+        self.a = 0.89677019
+        self.b_1 = 190.14178421
+        self.alpha = 0.9
         super().__init__(settings)
 
     def validate(self, user_id):
@@ -78,12 +84,6 @@ class VKGetAge(BaseAnalysisTask):
         uid = info.get("id")
         if not uid:
             return None
-        if info.get("bdate") and len(info.get("bdate").split(".")) == 3:
-            today = self.TODAY_DATE.today()
-            bdate = datetime.strptime(info.get("bdate"), '%d.%m.%Y')
-            age = today.year - bdate.year - ((today.month, today.day) < (bdate.month, bdate.day))
-            log.debug(f"Определен возраст пользователя ВК (uid={uid}). Приблизительный возраст={age}")
-            return age
         search_json = self._create_search_params_from_userinfo(info, "$age_from", "$age_to")
         search_json = json.dumps(search_json, ensure_ascii=False) \
             .replace('"$age_from"', "age_from") \
@@ -137,7 +137,7 @@ class VKGetAge(BaseAnalysisTask):
         }
         return age_from;
         """
-        age = self.vk_module._vkapi_request("execute", {"code": code})
+        age = self.vk_module._vkapi_request("execute", {"code": code})["response"]
         log.debug(f"Определен возраст пользователя ВК (uid={uid}). Приблизительный возраст={age}")
         if age is None:
             return None
@@ -145,94 +145,115 @@ class VKGetAge(BaseAnalysisTask):
             return None
         return int(age)
 
-    def _simple_det_age_of_vk_user(self, user_id: int):
+    def _simple_det_age_of_vk_user(self, user_ids: list):
         """"
-            Simple method to determine age of user
+            Simple method to determine age of users
             return: age or error or None
         """
-        info = self.vk_module.get_users([user_id], ["bdate", "education", "schools", "home_town"])
+        result = []
+        all_info = self.vk_module.get_users(user_ids, ["bdate"])["result"]
         #указана дата в профиле
-        if "bdate" in info["result"][0]:
-            bday = tuple(map(int, info["result"][0]["bdate"].split('.')[::-1]))
-            if len(bday) == 3:
-                bday = datetime.datetime(*bday)
-                age = floor(((self.TODAY_DATE.year - bday.year) * 12 + (self.TODAY_DATE.month - bday.month)) / 12)
-                if self.LEFT_SIDE_OF_AGE <= age and age <= self.RIGHT_SIDE_OF_AGE:
-                    log.debug(f"Определен возраст пользователя ВК (uid={user_id}). Приблизительный возраст={age}")
-                    return age
-        #указан год выпуска со школы
-        if info["result"][0].get("schools"):
-            num_of_schools = len(info["result"][0]["schools"])
-            if num_of_schools:
-                if info["result"][0]["schools"][0].get("year_from") and info["result"][0]["schools"][-1].get("year_to"):
-                    age = self.TODAY_DATE.year - info["result"][0]["schools"][0]["year_from"] + self.AGE_GO_TO_SCHOOL
-                    #исключаем случай, когда указана из нескольких школ только одна последняя
-                    if self.LEFT_SIDE_OF_AGE <= age and age <= self.RIGHT_SIDE_OF_AGE and\
-                       info["result"][0]["schools"][-1]["year_to"] -\
-                       info["result"][0]["schools"][0]["year_from"] >= self.MIN_NUM_OF_CLASSES:
-                        log.debug(f"Определен возраст пользователя ВК (uid={user_id}). Приблизительный возраст={age}")
-                        return age
-                if info["result"][0]["schools"][-1].get("year_graduated"):
-                    age = self.TODAY_DATE.year - info["result"][0]["schools"][-1]["year_graduated"] + self.AGE_WENT_FROM_SCHOOL
-                    log.debug(f"Определен возраст пользователя ВК (uid={user_id}). Приблизительный возраст={age}")
-                    return age
-        #указан год выпуска из универа (не очень адекватная оценка)
-        # if info["result"][0].get("graduation"):
-        #     age = self.TODAY_DATE.year - info["result"][0]["graduation"] + self.AGE_WENT_FROM_UNIVERSITY
-        #     log.debug(f"Определен возраст пользователя ВК (uid={user_id}). Приблизительный возраст={age}")
-        #     return age
-        return self._get_age_by_info(info)
+        for info in all_info:
+            if "bdate" in info:
+                bday = tuple(map(int, info["bdate"].split('.')[::-1]))
+                if len(bday) == 3:
+                    bday = datetime.datetime(*bday)
+                    age = floor(((self.TODAY_DATE.year - bday.year) * 12 + (self.TODAY_DATE.month - bday.month)) / 12)
+                    if self.LEFT_SIDE_OF_AGE <= age and age <= self.RIGHT_SIDE_OF_AGE:
+                        result.append({info["id"]: age})
+        return result
 
-    def _process_info(self, info):
-        if info is None:
-            return None
-        return {
-            "id": info.get("id"),
-            "bdate": info.get("bdate"),
-            "university_name": info.get("university_name"),
-            "school_name": info.get("schools", [{"name": None}])[-1]["name"] if len(info.get("schools", [{"name": None}]))
-                           else None,
-            "home_town": info.get("home_town")
-        }
+    def _det_year_graduated(self, user_ids: list):
+        """"
+            Method to determine year of users graduated
+            return: year or error or None
+        """
+        result = []
+        all_info = self.vk_module.get_users(user_ids, ["schools"])["result"]
+        # указан год выпуска со школы
+        for info in all_info:
+            if info.get("schools"):
+                num_of_schools = len(info["schools"])
+                if num_of_schools:
+                    if info["schools"][-1].get("year_graduated"):
+                        year = info["schools"][-1]["year_graduated"]
+                        log.debug(f"Определен год окончания школы пользователя ВК (uid={info['id']}). Год={year}")
+                        result.append(year)
+                    if info["schools"][0].get("year_from") and info["schools"][-1].get("year_to"):
+                        year = info["schools"][0]["year_to"]
+                        # исключаем случай, когда указана из нескольких школ только одна последняя
+                        if info["schools"][-1]["year_to"] - \
+                            info["schools"][0]["year_from"] >= self.MIN_NUM_OF_CLASSES:
+                            log.debug(f"Определен год окончания школы пользователя ВК (uid={info['id']}). Год={year}")
+                            result.append(year)
+        return result
 
-    def det_age_of_vk_user(self, user_id: int):
+    def det_age_of_vk_user(self, user_id: int, num_of_iter: int=2):
         """"
             Determine age of user
             return: age
         """
-        age_simple = self._simple_det_age_of_vk_user(user_id)
+        #если указан явно возраст
+        age_simple = self._simple_det_age_of_vk_user([user_id])
+        if age_simple:
+            return list(age_simple[0].values())[0]
+
+        #пытаемся определить по поиску
+        info = self.vk_module.get_users([user_id], ["bdate", "education", "schools", "home_town"])["result"][0]
+        age_simple = self._get_age_by_info(info)
         if age_simple is not None:
             return age_simple
 
         #не удалось определить простым способом
-        friends = self.vk_module.get_friends(user_id)["result"]
-        if friends:
-            log.debug(f"Функция get_friends вернула: {friends}")
-            friends_ages = []
-            for friend in friends:
-                fr_age = self._simple_det_age_of_vk_user(friend)
-                if fr_age:
-                    friends_ages.append(fr_age)
-                else:
-                    friends_ages_2 = []
-                    friends_2 = self.vk_module.get_friends(friend)["result"]
-                    if friends_2:
-                        for friend_2 in friends_2:
-                            fr_age_2 = self._simple_det_age_of_vk_user(friend_2)
-                            if fr_age_2:
-                                friends_ages_2.append(fr_age_2)
-                        if friends_ages_2:
-                            mean = statistics.mean(friends_ages_2)
-                            median = statistics.median(friends_ages_2)
-                            std = statistics.pstdev(friends_ages_2)
-                            fr_age = self.mean_coef * mean + self.median_coef * median + self.std_coef * std + self.b
-                            friends_ages.append(fr_age)
-            if friends_ages:
-                mean = statistics.mean(friends_ages)
-                median = statistics.median(friends_ages)
-                std = statistics.pstdev(friends_ages)
-                user_age = self.mean_coef * mean + self.median_coef * median + self.std_coef * std + self.b
-                return user_age
+        year_grad = self._det_year_graduated([user_id])
+        if year_grad:
+        #указан год окончания школы
+            year_by_school = round(year_grad[0] * self.a + self.b_1)
+            age = self.TODAY_DATE.year - year_by_school
+            log.debug(f"Определен примерный возраст пользователя ВК (uid={user_id}). Возраст={age}")
+            return age
+
+        #ничего не указано, итеративный способ
+        age = None
+        friends_of_target = self.vk_module.get_friends(user_id)["result"]
+        log.debug(f"Функция get_friends вернула: {friends_of_target}")
+        if friends_of_target:
+            friends_of_target_ages_dict = self._simple_det_age_of_vk_user(friends_of_target)
+            friends_of_target_ages = [list(i.values())[0] for i in friends_of_target_ages_dict]
+            friends_with_age = [list(i.keys())[0] for i in friends_of_target_ages_dict]
+            friends_without_age = [i for i in friends_of_target if i not in friends_with_age]
+            if friends_of_target_ages:
+                mean = statistics.mean(friends_of_target_ages)
+                median = statistics.median(friends_of_target_ages)
+                std = statistics.pstdev(friends_of_target_ages)
+                mode = int(s.mode(friends_of_target_ages)[0])
+                max_ = max(friends_of_target_ages)
+                min_ = min(friends_of_target_ages)
+                fr_age = self.mean_coef * mean + self.median_coef * median + self.mode_coef * mode + self.std_coef * std + self.max_coef * max_ + self.min_coef * min_ + self.b_2
+                age = fr_age
+                log.debug(f"Определен примерный возраст пользователя ВК (uid={user_id}). Возраст={age}")
+                if num_of_iter == 1:
+                    return age
+
+            if num_of_iter >= 2:
+                new_friends_ages_dict = self._simple_det_age_of_vk_user(friends_without_age)
+                new_friends_ages = [list(i.values())[0] for i in new_friends_ages_dict]
+                friends_of_target_ages += new_friends_ages
+                if friends_of_target_ages and new_friends_ages:
+                    mean = statistics.mean(friends_of_target_ages)
+                    median = statistics.median(friends_of_target_ages)
+                    std = statistics.pstdev(friends_of_target_ages)
+                    mode = int(s.mode(friends_of_target_ages)[0])
+                    max_ = max(friends_of_target_ages)
+                    min_ = min(friends_of_target_ages)
+                    fr_age = self.mean_coef * mean + self.median_coef * median + self.mode_coef * mode + self.std_coef * std + self.max_coef * max_ + self.min_coef * min_ + self.b_2
+                    if age:
+                        age = age * self.alpha + fr_age * (1 - self.alpha)
+                    else:
+                        age = fr_age
+                    log.debug(f"Определен примерный возраст пользователя ВК (uid={user_id}). Возраст={age}")
+
+            return age
 
     def execute(self, user_id):
         self.validate(user_id)
