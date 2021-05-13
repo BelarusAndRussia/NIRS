@@ -20,16 +20,16 @@ class VKGetAge(BaseAnalysisTask):
         self.MIN_NUM_OF_CLASSES = 8
         self.LEFT_SIDE_OF_AGE = 14
         self.RIGHT_SIDE_OF_AGE = 70
-        self.mean_coef = 0.31131345
-        self.median_coef = 0.23423586
-        self.mode_coef = -0.00322799
-        self.std_coef = 0.56824139
-        self.max_coef = -0.16115227
-        self.min_coef = 0.06115426
-        self.b_2 = 21.175922265453494
+        self.mean_coef = 0.35770485
+        self.median_coef = 0.21777892
+        self.mode_coef = -0.01540046
+        self.std_coef = 0.56870139
+        self.max_coef = -0.16092434
+        self.min_coef = 0.06544568
+        self.b_2 = 20.375543582191973
         self.a = 0.89677019
         self.b_1 = 190.14178421
-        self.alpha = 0.9
+        self.alpha = 0.8
         super().__init__(settings)
 
     def validate(self, user_id):
@@ -220,6 +220,8 @@ class VKGetAge(BaseAnalysisTask):
         if friends_of_target:
             friends_of_target_ages_dict = self._simple_det_age_of_vk_user(friends_of_target)
             friends_of_target_ages = [list(i.values())[0] for i in friends_of_target_ages_dict]
+            friends_of_target_ages.remove(max(friends_of_target_ages))
+            friends_of_target_ages.remove(min(friends_of_target_ages))
             friends_with_age = [list(i.keys())[0] for i in friends_of_target_ages_dict]
             friends_without_age = [i for i in friends_of_target if i not in friends_with_age]
             if friends_of_target_ages:

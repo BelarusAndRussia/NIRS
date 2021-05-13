@@ -74,5 +74,5 @@ if __name__ == '__main__':
     #
     vk_module = VK(settings)
     analysis = Analysis(settings)
-    print(analysis.vk_get_age(177602392))
+    print(analysis.vk_get_age(140879381))
 
